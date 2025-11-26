@@ -12,46 +12,88 @@ const openai = new OpenAI({
     'X-Title': 'AI Fitness Wizard'
   },
 });
+
 const resend = new Resend(process.env.RESEND_API_KEY!);
 
 // Enhanced PDF Styles
 const pdfStyles = StyleSheet.create({
-  page: { padding: 0, fontSize: 12, fontFamily: "Helvetica", backgroundColor: "#ffffff" },
+  page: {
+    padding: 30,
+    fontSize: 10,
+    fontFamily: "Helvetica",
+    backgroundColor: "#ffffff"
+  },
   header: {
     backgroundColor: "#7c3aed",
-    padding: 40,
-    paddingBottom: 30,
-    marginBottom: 30,
+    padding: 20,
+    marginBottom: 20,
+    borderRadius: 8,
   },
   headerTitle: {
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: "bold",
     color: "#ffffff",
-    marginBottom: 8,
+    marginBottom: 4,
   },
   headerSubtitle: {
-    fontSize: 14,
+    fontSize: 12,
     color: "#e9d5ff",
-    opacity: 0.9,
-  },
-  content: {
-    paddingHorizontal: 40,
-    paddingBottom: 40,
   },
   section: {
-    marginBottom: 25,
-    padding: 20,
+    marginBottom: 15,
+    padding: 15,
     backgroundColor: "#f8fafc",
     borderRadius: 8,
-    borderLeft: "4px solid #7c3aed",
+    borderLeftWidth: 4,
+    borderLeftColor: "#7c3aed",
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: "bold",
     color: "#4c1d95",
-    marginBottom: 15,
+    marginBottom: 10,
     textTransform: "uppercase",
-    letterSpacing: 1,
+  },
+  weekTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#be185d",
+    marginTop: 15,
+    marginBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#fbcfe8",
+    paddingBottom: 5,
+  },
+  dayContainer: {
+    marginBottom: 15,
+    padding: 12,
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 6,
+  },
+  dayHeader: {
+    fontSize: 12,
+    fontWeight: "bold",
+    color: "#1e293b",
+    marginBottom: 8,
+    backgroundColor: "#f1f5f9",
+    padding: 5,
+    borderRadius: 4,
+  },
+  subHeader: {
+    fontSize: 10,
+    fontWeight: "bold",
+    color: "#64748b",
+    marginTop: 6,
+    marginBottom: 2,
+    textTransform: "uppercase",
+  },
+  text: {
+    fontSize: 10,
+    lineHeight: 1.5,
+    color: "#334155",
+    marginBottom: 4,
   },
   row: {
     flexDirection: "row",
@@ -60,127 +102,310 @@ const pdfStyles = StyleSheet.create({
   },
   field: {
     width: "48%",
-    marginBottom: 10,
+    marginBottom: 5,
   },
   label: {
-    fontSize: 10,
+    fontSize: 8,
     color: "#64748b",
-    marginBottom: 2,
+    marginBottom: 1,
     textTransform: "uppercase",
   },
   value: {
-    fontSize: 12,
+    fontSize: 10,
     color: "#1e293b",
     fontWeight: "bold",
   },
-  planText: {
-    fontSize: 11,
-    lineHeight: 1.6,
-    color: "#334155",
-  },
   footer: {
     position: "absolute",
-    bottom: 30,
-    left: 40,
-    right: 40,
+    bottom: 20,
+    left: 30,
+    right: 30,
     textAlign: "center",
     color: "#94a3b8",
-    fontSize: 10,
-    borderTop: "1px solid #e2e8f0",
-    paddingTop: 20,
+    fontSize: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#e2e8f0",
+    paddingTop: 10,
   },
 });
 
-const FitnessPDF = ({ data, plan }: { data: any; plan: string }) => (
-  <Document>
-    <Page size="A4" style={pdfStyles.page}>
-      {/* Header */}
-      <View style={pdfStyles.header}>
-        <Text style={pdfStyles.headerTitle}>Fitness Wizard Plan</Text>
-        <Text style={pdfStyles.headerSubtitle}>Customized for {data.name}</Text>
-      </View>
+// ✅ FIXED: Added proper null checks and type safety
+const FitnessPDF = ({ data, plan }: { data: any; plan: any }) => {
+  // Safety checks
+  const safeName = data?.name || "Athlete";
+  const safeTitle = plan?.title || "Fitness Plan";
+  const safeIntro = plan?.introduction || "Your personalized fitness journey starts here!";
+  const safeGoal = data?.goal ? String(data.goal).replace(/_/g, " ").toUpperCase() : "NOT SPECIFIED";
+  const safeFitnessLevel = data?.fitnessLevel ? String(data.fitnessLevel).toUpperCase() : "NOT SPECIFIED";
+  const safeTimeline = data?.timeline ? String(data.timeline).replace(/_/g, " ").toUpperCase() : "NOT SPECIFIED";
+  const safeEquipment = Array.isArray(data?.equipment) && data.equipment.length > 0
+    ? data.equipment.join(", ")
+    : "Bodyweight Only";
 
-      <View style={pdfStyles.content}>
+  return (
+    <Document>
+      <Page size="A4" style={pdfStyles.page}>
+        {/* Header */}
+        <View style={pdfStyles.header}>
+          <Text style={pdfStyles.headerTitle}>Fitness Wizard Plan</Text>
+          <Text style={pdfStyles.headerSubtitle}>
+            Customized for {safeName} • {safeTitle}
+          </Text>
+        </View>
+
         {/* Profile Section */}
         <View style={pdfStyles.section}>
           <Text style={pdfStyles.sectionTitle}>Athlete Profile</Text>
           <View style={pdfStyles.row}>
             <View style={pdfStyles.field}>
               <Text style={pdfStyles.label}>Goal</Text>
-              <Text style={pdfStyles.value}>{data.goal.replace(/_/g, " ").toUpperCase()}</Text>
+              <Text style={pdfStyles.value}>{safeGoal}</Text>
             </View>
             <View style={pdfStyles.field}>
               <Text style={pdfStyles.label}>Fitness Level</Text>
-              <Text style={pdfStyles.value}>{data.fitnessLevel.toUpperCase()}</Text>
+              <Text style={pdfStyles.value}>{safeFitnessLevel}</Text>
             </View>
             <View style={pdfStyles.field}>
               <Text style={pdfStyles.label}>Timeline</Text>
-              <Text style={pdfStyles.value}>{data.timeline.replace(/_/g, " ").toUpperCase()}</Text>
+              <Text style={pdfStyles.value}>{safeTimeline}</Text>
             </View>
             <View style={pdfStyles.field}>
               <Text style={pdfStyles.label}>Equipment</Text>
-              <Text style={pdfStyles.value}>{data.equipment.join(", ") || "Bodyweight Only"}</Text>
+              <Text style={pdfStyles.value}>{safeEquipment}</Text>
             </View>
           </View>
         </View>
 
-        {/* Plan Section */}
-        <View style={{ ...pdfStyles.section, backgroundColor: "#fff", borderLeft: "4px solid #ec4899" }}>
-          <Text style={{ ...pdfStyles.sectionTitle, color: "#be185d" }}>Your 4-Week Blueprint</Text>
-          <Text style={pdfStyles.planText}>{plan}</Text>
+        {/* Introduction */}
+        <View style={{ marginBottom: 20 }}>
+          <Text style={pdfStyles.text}>{safeIntro}</Text>
         </View>
-      </View>
 
-      {/* Footer */}
-      <Text style={pdfStyles.footer}>
-        Generated by AI Fitness Wizard • {new Date().toLocaleDateString()} • Stay Consistent!
-      </Text>
-    </Page>
-  </Document>
-);
+        {/* ✅ FIXED: Added proper null checks and array validation */}
+        {Array.isArray(plan?.weeks) && plan.weeks.length > 0 ? (
+          plan.weeks.map((week: any, wIndex: number) => {
+            const weekTitle = week?.weekTitle || `Week ${wIndex + 1}`;
+
+            return (
+              <View key={wIndex} break={wIndex > 0} style={{ flexDirection: "column" }}>
+                <Text style={pdfStyles.weekTitle}>
+                  {weekTitle}
+                </Text>
+
+                {/* ✅ FIXED: Validate days array */}
+                {Array.isArray(week?.days) && week.days.length > 0 ? (
+                  week.days.map((day: any, dIndex: number) => {
+                    // ✅ FIXED: Convert all values to strings to prevent object rendering
+                    const dayTitle = String(day?.dayTitle || `Day ${dIndex + 1}`);
+                    const focus = String(day?.focus || "General Fitness");
+                    const timing = String(day?.timing || "Flexible timing");
+                    const workout = String(day?.workout || "Rest day or active recovery");
+                    const meals = String(day?.meals || "Balanced nutrition throughout the day");
+
+                    return (
+                      <View key={dIndex} style={pdfStyles.dayContainer} wrap={false}>
+                        <Text style={pdfStyles.dayHeader}>
+                          {dayTitle} — {focus}
+                        </Text>
+
+                        <Text style={pdfStyles.subHeader}>Timing</Text>
+                        <Text style={pdfStyles.text}>{timing}</Text>
+
+                        <Text style={pdfStyles.subHeader}>Workout</Text>
+                        <Text style={pdfStyles.text}>{workout}</Text>
+
+                        <Text style={pdfStyles.subHeader}>Meals</Text>
+                        <Text style={pdfStyles.text}>{meals}</Text>
+                      </View>
+                    );
+                  })
+                ) : (
+                  <Text style={pdfStyles.text}>No days scheduled for this week.</Text>
+                )}
+              </View>
+            );
+          })
+        ) : (
+          <View style={pdfStyles.section}>
+            <Text style={pdfStyles.text}>
+              Your personalized plan is being prepared. Please try generating again.
+            </Text>
+          </View>
+        )}
+
+        {/* Footer */}
+        <Text style={pdfStyles.footer} fixed>
+          Generated by AI Fitness Wizard • {new Date().toLocaleDateString()} • Stay Consistent!
+        </Text>
+      </Page>
+    </Document>
+  );
+};
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+
+    // ✅ FIXED: Validate request body
+    if (!body || typeof body !== 'object') {
+      return NextResponse.json(
+        { error: "Invalid request data" },
+        { status: 400 }
+      );
+    }
+
     const { want, ...formData } = body;
 
-    // Generate AI plan
+    // ✅ FIXED: Validate required fields
+    if (!formData.name || !formData.email) {
+      return NextResponse.json(
+        { error: "Name and email are required" },
+        { status: 400 }
+      );
+    }
+
+    console.log("📋 Generating plan for:", formData.name);
+
+    // Generate AI plan with JSON structure
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: "You are a world-class fitness coach. Write a detailed, motivating 4-week plan with workouts and meals. Use markdown. Be encouraging." },
-        { role: "user", content: JSON.stringify(formData, null, 2) }
+        {
+          role: "system",
+          content: `You are a world-class fitness coach. Create a highly detailed 4-week fitness and nutrition plan.
+Return the response as a valid JSON object with the following structure:
+{
+  "title": "Plan Title",
+  "introduction": "Motivational intro...",
+  "weeks": [
+    {
+      "weekTitle": "Week 1: Foundation",
+      "days": [
+        {
+          "dayTitle": "Day 1",
+          "focus": "Full Body",
+          "workout": "Detailed exercises, sets, reps...",
+          "meals": "Breakfast: ..., Lunch: ..., Dinner: ..., Snacks: ...",
+          "timing": "Wake up: 7am, Workout: 8am..."
+        }
+      ]
+    }
+  ]
+}
+
+CRITICAL: Ensure ALL values (dayTitle, focus, workout, meals, timing) are STRINGS, not objects or arrays. 
+Make the plan detailed but ensure it fits within token limits. Do not truncate the JSON.`
+        },
+        {
+          role: "user",
+          content: `Create a fitness plan for:\n${JSON.stringify(formData, null, 2)}`
+        }
       ],
-      temperature: 0.8,
-      max_tokens: 2000
+      temperature: 0.7,
+      max_tokens: 10000,
+      response_format: { type: "json_object" }
     });
 
-    const aiPlan = completion.choices[0].message.content!;
+    const aiContent = completion.choices[0]?.message?.content;
 
-    // Generate PDF
-    const pdfDoc = <FitnessPDF data={formData} plan={aiPlan} />;
-    const pdfBlob = await pdf(pdfDoc).toBlob();
-    const pdfBuffer = Buffer.from(await pdfBlob.arrayBuffer());
+    // ✅ FIXED: Better error handling for AI response
+    if (!aiContent) {
+      throw new Error("No response from AI");
+    }
+
+    let aiPlan;
+    try {
+      aiPlan = JSON.parse(aiContent);
+      console.log("✅ AI Plan parsed successfully");
+    } catch (parseError) {
+      console.error("❌ Failed to parse AI JSON:", parseError);
+
+      // ✅ FIXED: Better fallback structure
+      aiPlan = {
+        title: "Your Custom Fitness Plan",
+        introduction: "Your personalized fitness and nutrition plan has been generated. Due to formatting, some details may be simplified.",
+        weeks: [
+          {
+            weekTitle: "Week 1-4: Complete Plan",
+            days: [
+              {
+                dayTitle: "Overview",
+                focus: "Full Program",
+                workout: aiContent.substring(0, 500) + "...",
+                meals: "See full plan details",
+                timing: "Flexible schedule"
+              }
+            ]
+          }
+        ]
+      };
+    }
+
+    // ✅ FIXED: Validate AI plan structure
+    if (!aiPlan.weeks || !Array.isArray(aiPlan.weeks)) {
+      aiPlan.weeks = [];
+    }
+
+    console.log("📄 Generating PDF...");
+
+    // Generate PDF with error boundary
+    let pdfBuffer: Buffer;
+    try {
+      const pdfDoc = <FitnessPDF data={formData} plan={aiPlan} />;
+      const pdfBlob = await pdf(pdfDoc).toBlob();
+      pdfBuffer = Buffer.from(await pdfBlob.arrayBuffer());
+      console.log("✅ PDF generated successfully");
+    } catch (pdfError) {
+      console.error("❌ PDF generation failed:", pdfError);
+      throw new Error("Failed to generate PDF document");
+    }
 
     const response: any = { success: true, message: "Plan ready!" };
 
+    // ✅ FIXED: Better plain text formatting with safety checks
+    const plainTextPlan = `
+${aiPlan.title || "Your Fitness Plan"}
+
+${aiPlan.introduction || ""}
+
+${Array.isArray(aiPlan.weeks) ? aiPlan.weeks.map((w: any, wIdx: number) => `
+${w?.weekTitle || `Week ${wIdx + 1}`}
+${Array.isArray(w?.days) ? w.days.map((d: any, dIdx: number) => `
+  ${d?.dayTitle || `Day ${dIdx + 1}`}: ${d?.focus || "Training"}
+  Timing: ${d?.timing || "Flexible"}
+  Workout: ${d?.workout || "See plan"}
+  Meals: ${d?.meals || "Balanced nutrition"}
+`).join('\n') : 'No days scheduled'}
+`).join('\n') : 'Plan details unavailable'}
+    `.trim();
+
+    response.plan = plainTextPlan;
+
     // Email with PDF
-    if (want?.email) {
-      await resend.emails.send({
-        from: "AI Fitness Wizard <plan@yourdomain.com>",
-        to: formData.email,
-        subject: `Your Custom Fitness Plan is Here, ${formData.name.split(" ")[0]}!`,
-        html: `
-          <h1>Congrats, ${formData.name.split(" ")[0]}!</h1>
-          <p>Here’s your personalized 4-week fitness + nutrition plan.</p>
-          <pre style="background:#f9f9f9;padding:20px;border-radius:8px;font-size:14px;">${aiPlan}</pre>
-          <p>You’ve got this!</p>
-        `,
-        attachments: [{
-          filename: "Your_AI_Fitness_Plan.pdf",
-          content: pdfBuffer
-        }]
-      });
+    if (want?.email && formData.email) {
+      try {
+        console.log("📧 Sending email to:", formData.email);
+        await resend.emails.send({
+          from: "AI Fitness Wizard <onboarding@resend.dev>", // ✅ FIXED: Use verified Resend domain
+          to: formData.email,
+          subject: `Your Custom Fitness Plan is Here, ${formData.name.split(" ")[0]}!`,
+          html: `
+            <h1>Congrats, ${formData.name.split(" ")[0]}!</h1>
+            <p>Here's your personalized 4-week fitness + nutrition plan.</p>
+            <p>See the attached PDF for the full detailed breakdown.</p>
+            <p><strong>You've got this! 💪</strong></p>
+          `,
+          attachments: [{
+            filename: "Your_AI_Fitness_Plan.pdf",
+            content: pdfBuffer
+          }]
+        });
+        console.log("✅ Email sent successfully");
+      } catch (emailError) {
+        console.error("❌ Email failed:", emailError);
+        // Don't fail the entire request if email fails
+        response.emailError = "Email delivery failed, but your plan is ready";
+      }
     }
 
     // Add PDF for download
@@ -191,9 +416,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(response);
 
   } catch (error: any) {
-    console.error("Generate plan error:", error);
+    console.error("❌ Generate plan error:", error);
     return NextResponse.json(
-      { error: "Failed to generate plan. Try again!" },
+      {
+        error: error.message || "Failed to generate plan. Please try again!",
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      },
       { status: 500 }
     );
   }

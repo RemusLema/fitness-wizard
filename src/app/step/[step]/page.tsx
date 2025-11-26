@@ -58,29 +58,29 @@ const sections: Section[] = [
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Full Name *</label>
-            <input name="name" value={data.name} onChange={onChange} required className="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-purple-500 bg-white dark:bg-gray-800" placeholder="John Doe" />
+            <input name="name" value={data.name} onChange={onChange} required className="w-full p-3 md:p-4 text-sm md:text-base border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-purple-500 bg-white dark:bg-gray-800" placeholder="John Doe" />
             {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
           </div>
           <div>
             <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Email *</label>
-            <input name="email" type="email" value={data.email} onChange={onChange} required className="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-purple-500 bg-white dark:bg-gray-800" placeholder="john@example.com" />
+            <input name="email" type="email" value={data.email} onChange={onChange} required className="w-full p-3 md:p-4 text-sm md:text-base border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-purple-500 bg-white dark:bg-gray-800" placeholder="john@example.com" />
             {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
           </div>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div><label className="block text-sm font-semibold mb-2">Age</label><input name="age" type="number" value={data.age} onChange={onChange} className="w-full p-4 border rounded-xl bg-white dark:bg-gray-800" placeholder="30" min="13" /></div>
+          <div><label className="block text-sm font-semibold mb-2">Age</label><input name="age" type="number" value={data.age} onChange={onChange} className="w-full p-3 md:p-4 text-sm md:text-base border rounded-xl bg-white dark:bg-gray-800" placeholder="30" min="13" /></div>
           <div>
             <label className="block text-sm font-semibold mb-2">Gender</label>
-            <select name="gender" value={data.gender} onChange={onChange} className="w-full p-4 border rounded-xl bg-white dark:bg-gray-800">
+            <select name="gender" value={data.gender} onChange={onChange} className="w-full p-3 md:p-4 text-sm md:text-base border rounded-xl bg-white dark:bg-gray-800">
               <option value="">Select</option>
               <option value="male">Male</option>
               <option value="female">Female</option>
               <option value="other">Other / Prefer not to say</option>
             </select>
           </div>
-          <div><label className="block text-sm font-semibold mb-2">Weight (kg)</label><input name="weight" type="number" step="0.1" value={data.weight} onChange={onChange} className="w-full p-4 border rounded-xl bg-white dark:bg-gray-800" placeholder="75" /></div>
-          <div><label className="block text-sm font-semibold mb-2">Height (cm)</label><input name="height" type="number" value={data.height} onChange={onChange} className="w-full p-4 border rounded-xl bg-white dark:bg-gray-800" placeholder="175" /></div>
+          <div><label className="block text-sm font-semibold mb-2">Weight (kg)</label><input name="weight" type="number" step="0.1" value={data.weight} onChange={onChange} className="w-full p-3 md:p-4 text-sm md:text-base border rounded-xl bg-white dark:bg-gray-800" placeholder="75" /></div>
+          <div><label className="block text-sm font-semibold mb-2">Height (cm)</label><input name="height" type="number" value={data.height} onChange={onChange} className="w-full p-3 md:p-4 text-sm md:text-base border rounded-xl bg-white dark:bg-gray-800" placeholder="175" /></div>
         </div>
 
         {bmi !== null && (
@@ -93,7 +93,7 @@ const sections: Section[] = [
                 </p>
                 <p className="text-sm mt-1">{bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Healthy' : bmi < 30 ? 'Overweight' : 'Obese'}</p>
               </div>
-              <div className="text-5xl">Chart</div>
+              <div className="text-2xl md:text-5xl">Chart</div>
             </div>
           </div>
         )}
@@ -108,7 +108,7 @@ const sections: Section[] = [
       <div className="space-y-8">
         <div>
           <label className="block text-sm font-semibold mb-3">Primary Goal *</label>
-          <select name="goal" value={data.goal} onChange={onChange} className="w-full p-4 border rounded-xl bg-white dark:bg-gray-800">
+          <select name="goal" value={data.goal} onChange={onChange} className="w-full p-3 md:p-4 text-sm md:text-base border rounded-xl bg-white dark:bg-gray-800">
             <option value="weight_loss">Weight Loss</option>
             <option value="muscle_gain">Muscle Gain</option>
             <option value="toning">Toning & Shape</option>
@@ -119,7 +119,7 @@ const sections: Section[] = [
         {data.goal === "weight_loss" && (
           <div className="p-5 bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-500 rounded-r-xl">
             <label className="block font-medium mb-2">Target Weight Loss (kg)</label>
-            <input name="targetWeightLoss" type="number" step="0.5" value={data.targetWeightLoss} onChange={onChange} className="w-full p-4 border rounded-xl bg-white dark:bg-gray-800" placeholder="8" />
+            <input name="targetWeightLoss" type="number" step="0.5" value={data.targetWeightLoss} onChange={onChange} className="w-full p-3 md:p-4 text-sm md:text-base border rounded-xl bg-white dark:bg-gray-800" placeholder="8" />
             <p className="text-xs text-gray-600 mt-2">Healthy rate: 0.5–1 kg per week</p>
           </div>
         )}
@@ -127,7 +127,7 @@ const sections: Section[] = [
         <div className="grid md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-semibold mb-2">Intensity Level</label>
-            <select name="intensity" value={data.intensity} onChange={onChange} className="w-full p-4 border rounded-xl bg-white dark:bg-gray-800">
+            <select name="intensity" value={data.intensity} onChange={onChange} className="w-full p-3 md:p-4 text-sm md:text-base border rounded-xl bg-white dark:bg-gray-800">
               <option value="light">Light (Beginner)</option>
               <option value="moderate">Moderate</option>
               <option value="high">High</option>
@@ -136,7 +136,7 @@ const sections: Section[] = [
           </div>
           <div>
             <label className="block text-sm font-semibold mb-2">Timeline</label>
-            <select name="timeline" value={data.timeline} onChange={onChange} className="w-full p-4 border rounded-xl bg-white dark:bg-gray-800">
+            <select name="timeline" value={data.timeline} onChange={onChange} className="w-full p-3 md:p-4 text-sm md:text-base border rounded-xl bg-white dark:bg-gray-800">
               <option value="1_month">1 Month</option>
               <option value="3_months">3 Months</option>
               <option value="6_months">6 Months</option>
@@ -155,7 +155,7 @@ const sections: Section[] = [
       <div className="space-y-8">
         <div>
           <label className="block text-sm font-semibold mb-3">Dietary Preference</label>
-          <select name="dietaryPreference" value={data.dietaryPreference} onChange={onChange} className="w-full p-4 border rounded-xl bg-white dark:bg-gray-800">
+          <select name="dietaryPreference" value={data.dietaryPreference} onChange={onChange} className="w-full p-3 md:p-4 text-sm md:text-base border rounded-xl bg-white dark:bg-gray-800">
             <option value="standard">No restrictions</option>
             <option value="vegetarian">Vegetarian</option>
             <option value="vegan">Vegan</option>
@@ -165,11 +165,11 @@ const sections: Section[] = [
         </div>
         <div>
           <label className="block text-sm font-semibold mb-2">Food Allergies</label>
-          <input name="foodAllergies" value={data.foodAllergies} onChange={onChange} className="w-full p-4 border rounded-xl bg-white dark:bg-gray-800" placeholder="e.g. peanuts, lactose" />
+          <input name="foodAllergies" value={data.foodAllergies} onChange={onChange} className="w-full p-3 md:p-4 text-sm md:text-base border rounded-xl bg-white dark:bg-gray-800" placeholder="e.g. peanuts, lactose" />
         </div>
         <div>
           <label className="block text-sm font-semibold mb-2">Daily Water Intake</label>
-          <select name="waterIntake" value={data.waterIntake} onChange={onChange} className="w-full p-4 border rounded-xl bg-white dark:bg-gray-800">
+          <select name="waterIntake" value={data.waterIntake} onChange={onChange} className="w-full p-3 md:p-4 text-sm md:text-base border rounded-xl bg-white dark:bg-gray-800">
             <option value="4">Less than 4 glasses</option>
             <option value="6">4–6 glasses</option>
             <option value="8">8 glasses (Recommended)</option>
@@ -188,7 +188,7 @@ const sections: Section[] = [
         <div className="grid md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-semibold mb-2">Current Fitness Level</label>
-            <select name="fitnessLevel" value={data.fitnessLevel} onChange={onChange} className="w-full p-4 border rounded-xl bg-white dark:bg-gray-800">
+            <select name="fitnessLevel" value={data.fitnessLevel} onChange={onChange} className="w-full p-3 md:p-4 text-sm md:text-base border rounded-xl bg-white dark:bg-gray-800">
               <option value="beginner">Beginner (0–6 months)</option>
               <option value="intermediate">Intermediate (6 months–2 years)</option>
               <option value="advanced">Advanced (2+ years)</option>
@@ -196,7 +196,7 @@ const sections: Section[] = [
           </div>
           <div>
             <label className="block text-sm font-semibold mb-2">Where do you train?</label>
-            <select name="workoutLocation" value={data.workoutLocation} onChange={onChange} className="w-full p-4 border rounded-xl bg-white dark:bg-gray-800">
+            <select name="workoutLocation" value={data.workoutLocation} onChange={onChange} className="w-full p-3 md:p-4 text-sm md:text-base border rounded-xl bg-white dark:bg-gray-800">
               <option value="home">Home</option>
               <option value="gym">Gym</option>
               <option value="outdoor">Outdoor</option>
@@ -205,7 +205,7 @@ const sections: Section[] = [
         </div>
         <div>
           <label className="block text-sm font-semibold mb-2">Past Injuries or Conditions</label>
-          <textarea name="pastInjuries" rows={3} value={data.pastInjuries} onChange={onChange} className="w-full p-4 border rounded-xl bg-white dark:bg-gray-800" placeholder="e.g. lower back pain, knee surgery…" />
+          <textarea name="pastInjuries" rows={3} value={data.pastInjuries} onChange={onChange} className="w-full p-3 md:p-4 text-sm md:text-base border rounded-xl bg-white dark:bg-gray-800" placeholder="e.g. lower back pain, knee surgery…" />
         </div>
       </div>
     )
@@ -220,7 +220,7 @@ const sections: Section[] = [
           <label className="block text-lg font-bold mb-4">Available Equipment *</label>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {["Bodyweight Only", "Dumbbells", "Resistance Bands", "Kettlebells", "Pull-up Bar", "Gym Access"].map(item => (
-              <label key={item} className="flex items-center gap-3 p-4 border rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+              <label key={item} className="flex items-center gap-3 p-3 border rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition">
                 <input type="checkbox" value={item} checked={data.equipment.includes(item)} onChange={onChange} className="w-5 h-5 text-purple-600 rounded" />
                 <span className="text-sm font-medium">{item}</span>
               </label>
@@ -382,7 +382,7 @@ export default function WizardStep() {
         <div className="min-h-screen px-6 py-12">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
-              <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <h1 className="text-3xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                 {sections[index].icon} {sections[index].title}
               </h1>
               <p className="text-xl text-gray-600 dark:text-gray-400 mt-4">{sections[index].description}</p>
@@ -396,22 +396,22 @@ export default function WizardStep() {
               ))}
             </div>
 
-            <form onSubmit={submit} className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl p-8 md:p-12" key={step} >
+            <form onSubmit={submit} className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl p-4 md:p-12" key={step} >
               {sections[index].fields(formData, handleChange, errors, bmi, want, setWant, result, formData)}
               <div className="flex justify-between items-center mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
                 <button type="button" onClick={() => go(step - 1)} disabled={step === 1}
-                  className="px-8 py-4 bg-gray-100 dark:bg-gray-800 rounded-xl font-bold disabled:opacity-50">
+                  className="px-5 py-3 md:px-8 md:py-4 bg-gray-100 dark:bg-gray-800 rounded-xl font-bold disabled:opacity-50">
                   ← Back
                 </button>
 
                 {index === sections.length - 1 ? (
                   <button type="submit" disabled={loading}
-                    className="px-12 py-5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xl font-bold rounded-2xl shadow-2xl hover:shadow-purple-500/50 transition transform hover:scale-105">
+                    className="px-6 py-3 md:px-12 md:py-5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-lg md:text-xl font-bold rounded-2xl shadow-2xl hover:shadow-purple-500/50 transition transform hover:scale-105">
                     {loading ? "Generating..." : "Generate My AI Plan"}
                   </button>
                 ) : (
                   <button type="button" onClick={() => go(step + 1)}
-                    className="px-12 py-5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xl font-bold rounded-2xl shadow-2xl hover:shadow-purple-500/50 transition transform hover:scale-105">
+                    className="px-6 py-3 md:px-12 md:py-5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-lg md:text-xl font-bold rounded-2xl shadow-2xl hover:shadow-purple-500/50 transition transform hover:scale-105">
                     Next →
                   </button>
                 )}
