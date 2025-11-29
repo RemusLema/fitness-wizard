@@ -21,11 +21,6 @@ export default function RootLayout({
       <body className={inter.className}>
         <ClientLayout>{children}</ClientLayout>
 
-        {/* Version Marker for Deployment Verification */}
-        <div style={{ position: 'fixed', bottom: 0, right: 0, padding: '5px', background: 'red', color: 'white', zIndex: 9999, fontSize: '12px' }}>
-          v2.0 - Deployment Verified
-        </div>
-
         <Analytics />
       </body>
     </html>
