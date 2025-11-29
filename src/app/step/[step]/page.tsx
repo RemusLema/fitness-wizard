@@ -257,9 +257,15 @@ const sections: Section[] = [
               </label>
               <label className="flex items-center gap-4 text-lg">
                 <input type="checkbox" checked={want.email} disabled className="w-6 h-6 text-emerald-600 rounded" />
-                <span className="text-emerald-600 font-bold">
-                  Email sent to {formData.email} ✓
-                </span>
+                {result.emailError ? (
+                  <span className="text-amber-600 font-bold flex items-center gap-2">
+                    ⚠️ {result.emailError}
+                  </span>
+                ) : (
+                  <span className="text-emerald-600 font-bold">
+                    Email sent to {formData.email} ✓
+                  </span>
+                )}
               </label>
             </div>
           </div>
@@ -357,7 +363,8 @@ export default function WizardStep() {
         setResult({
           success: true,
           plan: data.plan || "Your plan was generated and sent!",
-          pdfUrl: data.pdfUrl
+          pdfUrl: data.pdfUrl,
+          emailError: data.emailError // Pass emailError to state
         });
         localStorage.removeItem("fitnessWizard2025");
         window.dispatchEvent(new CustomEvent("fitness-success"));
