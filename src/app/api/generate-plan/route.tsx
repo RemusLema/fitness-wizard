@@ -427,7 +427,7 @@ ${plainTextPlan}
 
                 <!-- Signature -->
                 <div style="margin-top:40px; padding-top:20px; border-top:2px solid #e5e7eb;">
-                  <p style="margin:0; font-weight:bold; color:#1f2937;">Remus</p>
+                  <p style="margin:0; font-weight:bold; color:#1f2937;">Rama</p>
                   <p style="margin:5px 0; color:#7c3aed; font-weight:600;">Founder & Head Coach</p>
                   <p style="margin:5px 0 12px; color:#6b7280; font-size:14px;">
                     AI Fitness Wizard<br>
