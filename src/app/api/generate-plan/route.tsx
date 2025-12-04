@@ -390,7 +390,61 @@ ${Array.isArray(w?.days) ? w.days.map((d: any, dIdx: number) => `
           from: "AI Fitness Wizard <noreply@ramafit.xyz>",
           to: formData.email,
           subject: `Your Custom Fitness Plan is Here, ${formData.name.split(" ")[0]}!`,
-          html: `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Your AI Fitness Plan</title><style>body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background-color:#f5f5f5}table{border-collapse:collapse}@media only screen and (max-width:600px){.container{width:100%!important}.mobile-padding{padding:20px!important}}</style></head><body><table role="presentation" style="width:100%;background-color:#f5f5f5" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 20px"><table role="presentation" class="container" style="width:600px;max-width:100%;background-color:#fff;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.1)" cellpadding="0" cellspacing="0"><tr><td style="background:linear-gradient(135deg,#7c3aed 0%,#db2777 100%);padding:40px 30px;text-align:center;border-radius:12px 12px 0 0"><h1 style="margin:0;color:#fff;font-size:32px;font-weight:bold">🏋️ AI Fitness Wizard</h1><p style="margin:10px 0 0 0;color:#f3e8ff;font-size:16px">Your Personalized Journey Starts Now</p></td></tr><tr><td class="mobile-padding" style="padding:40px 30px"><h2 style="margin:0 0 20px 0;color:#1f2937;font-size:28px">Congrats, ${formData.name.split(" ")[0]}! 🎉</h2><p style="margin:0 0 20px 0;color:#4b5563;font-size:16px;line-height:1.6">Your <strong>personalized 4-week fitness and nutrition plan</strong> is ready!</p><table role="presentation" style="width:100%;background-color:#f0fdf4;border-left:4px solid #10b981;border-radius:8px;margin:30px 0" cellpadding="0" cellspacing="0"><tr><td style="padding:20px"><p style="margin:0 0 10px 0;color:#065f46;font-size:14px;font-weight:bold">📋 YOUR PLAN OVERVIEW</p><p style="margin:0;color:#047857;font-size:15px;line-height:1.6"><strong>Goal:</strong> ${formData.goal?.replace(/_/g, ' ') || 'Fitness'}<br><strong>Level:</strong> ${formData.fitnessLevel || 'Beginner'}<br><strong>Duration:</strong> 4 weeks</p></td></tr></table><table role="presentation" style="width:100%;margin:30px 0" cellpadding="0" cellspacing="0"><tr><td align="center"><span style="display:inline-block;padding:16px 40px;background:linear-gradient(135deg,#7c3aed 0%,#db2777 100%);color:#fff;font-size:16px;font-weight:bold;border-radius:8px">📥 Download Your Plan (Attached)</span></td></tr></table><table role="presentation" style="width:100%;background:linear-gradient(135deg,#fef3c7 0%,#fde68a 100%);border-radius:8px;margin:30px 0" cellpadding="0" cellspacing="0"><tr><td style="padding:20px;text-align:center"><p style="margin:0;color:#92400e;font-size:18px;font-weight:bold">💪 You've got this!</p><p style="margin:10px 0 0 0;color:#b45309;font-size:14px">Consistency is key. Start today, trust the process.</p></td></tr></table><h3 style="margin:40px 0 20px 0;color:#1f2937;font-size:20px">🎯 Quick Tips for Success</h3><table role="presentation" style="width:100%" cellpadding="0" cellspacing="0"><tr><td style="padding:12px 0;border-bottom:1px solid #e5e7eb"><p style="margin:0;color:#4b5563;font-size:15px">✓ <strong>Stay Hydrated:</strong> Drink 8+ glasses daily</p></td></tr><tr><td style="padding:12px 0;border-bottom:1px solid #e5e7eb"><p style="margin:0;color:#4b5563;font-size:15px">✓ <strong>Track Progress:</strong> Photos & measurements weekly</p></td></tr><tr><td style="padding:12px 0;border-bottom:1px solid #e5e7eb"><p style="margin:0;color:#4b5563;font-size:15px">✓ <strong>Rest Days Matter:</strong> Recovery = growth</p></td></tr><tr><td style="padding:12px 0"><p style="margin:0;color:#4b5563;font-size:15px">✓ <strong>Listen to Your Body:</strong> Adjust as needed</p></td></tr></table></td></tr><tr><td style="background-color:#f9fafb;padding:30px;text-align:center;border-radius:0 0 12px 12px;border-top:1px solid #e5e7eb"><p style="margin:0 0 15px 0;color:#6b7280;font-size:14px">Need support? We're here to help!</p><p style="margin:0 0 20px 0;color:#9ca3af;font-size:13px">This email was sent to ${formData.email}<br>© ${new Date().getFullYear()} AI Fitness Wizard</p><p style="margin:0;color:#9ca3af;font-size:12px"><a href="mailto:nutritionandrecovery@gmail.com?subject=Unsubscribe" style="color:#7c3aed;text-decoration:underline">Unsubscribe</a></p></td></tr></table></td></tr></table></body></html>`,
+          html: `
+            <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background:#f9f9f9; padding:20px;">
+              <!-- Header -->
+              <div style="background:#7c3aed; padding:32px 24px; border-radius:16px 16px 0 0; text-align:center; color:white;">
+                <h1 style="margin:0; font-size:28px; font-weight:bold;">Your AI Fitness + Nutrition Plan</h1>
+                <p style="margin:8px 0 0; font-size:18px; opacity:0.95;">4 weeks, custom-built for you</p>
+              </div>
+
+              <!-- Greeting -->
+              <div style="background:white; padding:32px 28px; border-radius:0 0 16px 16px; box-shadow:0 10px 30px rgba(0,0,0,0.08);">
+                <p style="font-size:18px; color:#1f2937;">
+                  Hey <strong>${formData.name.split(" ")[0]}</strong>,<br><br>
+                  Congrats — your personalized plan is ready! 🎉<br><br>
+                  This is built 100% for your goal (${formData.goal?.replace(/_/g, " ") || "fitness"}), current level, and equipment.
+                </p>
+
+                <!-- Plan -->
+                <div style="background:#f8f9fc; padding:24px; border-radius:12px; margin:24px 0; font-size:15px; line-height:1.7; white-space:pre-wrap; max-height:500px; overflow-y:auto;">
+${plainTextPlan}
+                </div>
+
+                <!-- PDF Attached Notice -->
+                <div style="text-align:center; margin:32px 0; padding:20px; background:#f0fdf4; border-radius:12px; border-left:4px solid #10b981;">
+                  <p style="margin:0; color:#047857; font-size:16px;">
+                    📎 <strong>Full PDF is attached to this email</strong><br>
+                    <span style="font-size:14px; opacity:0.8;">Download it for offline access and detailed breakdowns</span>
+                  </p>
+                </div>
+
+                <!-- Closing -->
+                <p style="color:#4b5563; font-size:16px; line-height:1.6;">
+                  You've got this.<br>
+                  Any questions or want tweaks? Just hit reply — I read every single message.
+                </p>
+
+                <!-- Signature -->
+                <div style="margin-top:40px; padding-top:20px; border-top:2px solid #e5e7eb;">
+                  <p style="margin:0; font-weight:bold; color:#1f2937;">Remus</p>
+                  <p style="margin:5px 0; color:#7c3aed; font-weight:600;">Founder & Head Coach</p>
+                  <p style="margin:5px 0 12px; color:#6b7280; font-size:14px;">
+                    AI Fitness Wizard<br>
+                    noreply@ramafit.xyz
+                  </p>
+                </div>
+
+                <!-- Footer -->
+                <div style="margin-top:32px; font-size:12px; color:#9ca3af; text-align:center;">
+                  <p>You're receiving this because you requested your custom plan.<br>
+                  <a href="https://fitness-wizard-kappa.vercel.app" style="color:#7c3aed; text-decoration:none;">fitness-wizard-kappa.vercel.app</a> • 
+                  <a href="mailto:noreply@ramafit.xyz?subject=Unsubscribe" style="color:#9ca3af; text-decoration:underline;">Unsubscribe</a>
+                  </p>
+                </div>
+              </div>
+            </div>
+          `,
           attachments: [{
             filename: "Your_AI_Fitness_Plan.pdf",
             content: pdfBuffer
