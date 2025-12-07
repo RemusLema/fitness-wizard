@@ -128,7 +128,91 @@ const pdfStyles = StyleSheet.create({
     borderTopColor: "#e2e8f0",
     paddingTop: 10,
   },
+  bulletPoint: {
+    fontSize: 9,
+    lineHeight: 1.7,
+    color: "#334155",
+    marginBottom: 3,
+    paddingLeft: 10,
+  },
+  mealSection: {
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  mealType: {
+    fontSize: 10,
+    fontWeight: "bold",
+    color: "#7c3aed",
+    marginBottom: 3,
+  },
+  mealItem: {
+    fontSize: 9,
+    lineHeight: 1.6,
+    color: "#475569",
+    marginBottom: 2,
+    paddingLeft: 10,
+  },
+  dayBox: {
+    backgroundColor: "#f0f9ff",
+    borderLeftWidth: 4,
+    borderLeftColor: "#7c3aed",
+    borderRadius: 8,
+    padding: 14,
+    marginBottom: 16,
+  },
 });
+
+// Helper function to parse workout into bullet points
+function parseWorkoutIntoBullets(workout: string): string[] {
+  if (!workout || workout.trim().length === 0) return [];
+
+  return workout
+    .split(/[,\n]|(?=\d+\.)/)
+    .map(item => item.trim())
+    .map(item => item.replace(/^[•\-\d+\.]+\s*/, ''))
+    .filter(item => item.length > 5)
+    .slice(0, 15);
+}
+
+// Helper function to parse meals into sections
+function parseMealsIntoSections(meals: string): { [key: string]: string[] } {
+  if (!meals || meals.trim().length === 0) return {};
+
+  const sections: { [key: string]: string[] } = {};
+  const mealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Pre-Workout', 'Post-Workout'];
+
+  mealTypes.forEach(mealType => {
+    const regex = new RegExp(`${mealType}\\s*:?\\s*([^A-Z]+)`, 'i');
+    const match = meals.match(regex);
+
+    if (match && match[1]) {
+      const items = match[1]
+        .split(/[,;]|(?=\d+\.)/)
+        .map(item => item.trim())
+        .map(item => item.replace(/^[•\-\d+\.]+\s*/, ''))
+        .filter(item => item.length > 2)
+        .slice(0, 8);
+
+      if (items.length > 0) {
+        sections[mealType] = items;
+      }
+    }
+  });
+
+  if (Object.keys(sections).length === 0) {
+    const items = meals
+      .split(/[,;\n]/)
+      .map(item => item.trim())
+      .filter(item => item.length > 3)
+      .slice(0, 10);
+
+    if (items.length > 0) {
+      sections['Daily Nutrition'] = items;
+    }
+  }
+
+  return sections;
+};
 
 // ✅ FIXED: Added proper null checks and type safety
 const FitnessPDF = ({ data, plan }: { data: any; plan: any }) => {
@@ -203,8 +287,12 @@ const FitnessPDF = ({ data, plan }: { data: any; plan: any }) => {
                     const workout = String(day?.workout || "Rest day or active recovery");
                     const meals = String(day?.meals || "Balanced nutrition throughout the day");
 
+                    // Parse workouts and meals for better readability
+                    const workoutBullets = parseWorkoutIntoBullets(workout);
+                    const mealSections = parseMealsIntoSections(meals);
+
                     return (
-                      <View key={dIndex} style={pdfStyles.dayContainer} wrap={false}>
+                      <View key={dIndex} style={pdfStyles.dayBox} wrap={false}>
                         <Text style={pdfStyles.dayHeader}>
                           {dayTitle} — {focus}
                         </Text>
@@ -212,11 +300,32 @@ const FitnessPDF = ({ data, plan }: { data: any; plan: any }) => {
                         <Text style={pdfStyles.subHeader}>Timing</Text>
                         <Text style={pdfStyles.text}>{timing}</Text>
 
-                        <Text style={pdfStyles.subHeader}>Workout</Text>
-                        <Text style={pdfStyles.text}>{workout}</Text>
+                        <Text style={pdfStyles.subHeader}>💪 Workout</Text>
+                        {workoutBullets.length > 0 ? (
+                          workoutBullets.map((exercise, idx) => (
+                            <Text key={idx} style={pdfStyles.bulletPoint}>
+                              • {exercise}
+                            </Text>
+                          ))
+                        ) : (
+                          <Text style={pdfStyles.text}>{workout}</Text>
+                        )}
 
-                        <Text style={pdfStyles.subHeader}>Meals</Text>
-                        <Text style={pdfStyles.text}>{meals}</Text>
+                        <Text style={pdfStyles.subHeader}>🍽️ Nutrition</Text>
+                        {Object.keys(mealSections).length > 0 ? (
+                          Object.entries(mealSections).map(([mealType, items], idx) => (
+                            <View key={idx} style={pdfStyles.mealSection}>
+                              <Text style={pdfStyles.mealType}>{mealType}:</Text>
+                              {items.map((item, itemIdx) => (
+                                <Text key={itemIdx} style={pdfStyles.mealItem}>
+                                  ◦ {item}
+                                </Text>
+                              ))}
+                            </View>
+                          ))
+                        ) : (
+                          <Text style={pdfStyles.text}>{meals}</Text>
+                        )}
                       </View>
                     );
                   })
