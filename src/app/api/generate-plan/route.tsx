@@ -167,10 +167,10 @@ function parseWorkoutIntoBullets(workout: string): string[] {
   if (!workout || workout.trim().length === 0) return [];
 
   return workout
-    .split(/[,\n]|(?=\d+\.)/)
+    .split(/;|\n/)
     .map(item => item.trim())
     .map(item => item.replace(/^[•\-\d+\.]+\s*/, ''))
-    .filter(item => item.length > 5)
+    .filter(item => item.length > 10)
     .slice(0, 15);
 }
 

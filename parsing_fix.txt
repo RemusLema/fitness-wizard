@@ -1,0 +1,58 @@
+// Helper function to parse workout into bullet points
+function parseWorkoutIntoBullets(workout: string): string[] {
+  if (!workout || workout.trim().length === 0) return [];
+  
+  // Split on semicolons and newlines (NOT commas) to preserve exercise descriptions
+  // Example: "warm-up (jumping jacks, high knees); 3 sets of 10 reps"
+  let items = workout
+    .split(/;|\n/)  // Only semicolons and newlines
+    .map(item => item.trim())
+    .filter(item => item.length > 10);  // Filter short fragments
+  
+  // If we got 2-15 good items, return them
+  if (items.length >= 2 && items.length <= 15) {
+    return items;
+  }
+  
+  // Otherwise fallback to original text (return empty array)
+  return [];
+}
+
+// Helper function to parse meals into sections  
+function parseMealsIntoSections(meals: string): { [key: string]: string[] } {
+  if (!meals || meals.trim().length === 0) return {};
+  
+  const sections: { [key: string]: string[] } = {};
+  const mealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Pre-Workout', 'Post-Workout'];
+  
+  mealTypes.forEach(mealType => {
+    const regex = new RegExp(`${mealType}\\s*:?\\s*([^A-Z]+)`, 'i');
+    const match = meals.match(regex);
+    
+    if (match && match[1]) {
+      const items = match[1]
+        .split(/,|;/)  // Commas OK for meals
+        .map(item => item.trim())
+        .filter(item => item.length > 2)
+        .slice(0, 8);
+      
+      if (items.length > 0) {
+        sections[mealType] = items;
+      }
+    }
+  });
+  
+  if (Object.keys(sections).length === 0) {
+    const items = meals
+      .split(/,|;|\n/)
+      .map(item => item.trim())
+      .filter(item => item.length > 3)
+      .slice(0, 10);
+    
+    if (items.length > 0) {
+      sections['Daily Nutrition'] = items;
+    }
+  }
+  
+  return sections;
+}
