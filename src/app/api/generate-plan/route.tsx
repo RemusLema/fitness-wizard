@@ -162,16 +162,47 @@ const pdfStyles = StyleSheet.create({
   },
 });
 
-// Helper function to parse workout into bullet points
+// IMPROVED: Helper function to parse workout into bullet points
 function parseWorkoutIntoBullets(workout: string): string[] {
   if (!workout || workout.trim().length === 0) return [];
 
-  return workout
-    .split(/;|\n/)
-    .map(item => item.trim())
-    .map(item => item.replace(/^[•\-\d+\.]+\s*/, ''))
-    .filter(item => item.length > 10)
-    .slice(0, 15);
+  const bullets: string[] = [];
+
+  // Split by newlines first to get sections (warm-up, circuit, cooldown, etc.)
+  const lines = workout.split(/\n/).map(l => l.trim()).filter(l => l.length > 5);
+
+  for (const line of lines) {
+    // Pattern: "Label: content" or "Label - content"
+    const match = line.match(/^([^:]+?)[:]\s*(.+)$/);
+
+    if (match) {
+      const label = match[1].trim();
+      const content = match[2].trim();
+
+      // Check if content has multiple items (circuit style)  
+      // Look for pattern with commas: "Ex1, Ex2, Ex3"
+      if (content.includes(',') && (content.match(/,/g) || []).length >= 2) {
+        // This is a circuit/list  
+        bullets.push(`${label}:`);
+
+        // Split on commas and add as sub-items
+        content.split(',').forEach(item => {
+          const cleaned = item.trim();
+          if (cleaned.length > 2) {
+            bullets.push(`  • ${cleaned}`);
+          }
+        });
+      } else {
+        // Single item, add normally
+        bullets.push(line);
+      }
+    } else {
+      // No colon, add as-is
+      bullets.push(line);
+    }
+  }
+
+  return bullets.length >= 2 ? bullets : [];
 }
 
 // Helper function to parse meals into sections
