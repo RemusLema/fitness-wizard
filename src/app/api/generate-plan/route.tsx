@@ -168,40 +168,25 @@ function parseWorkoutIntoBullets(workout: string): string[] {
 
   const bullets: string[] = [];
 
-  // Split by newlines first to get sections (warm-up, circuit, cooldown, etc.)
-  const lines = workout.split(/\\n/).map(l => l.trim()).filter(l => l.length > 5);
+  // AI generates workouts like: "Warm-up: 5 min; Squats: 3 sets of 12 reps; Push-ups: 3 sets"
+  // Split on both semicolons AND newlines
+  const parts = workout
+    .split(/[;\n]/)
+    .map(p => p.trim())
+    .filter(p => p.length > 5);
 
-  for (const line of lines) {
-    // Pattern: "Label: content" or "Label - content"
-    const match = line.match(/^([^:]+?)[:]\s*(.+)$/);
+  // Each part should be an exercise like "Warm-up: 5 min light cardio"
+  for (const part of parts) {
+    // Clean up any leading bullets or numbers
+    const cleaned = part.replace(/^[•\-\d+\.]\s*/, '').trim();
 
-    if (match) {
-      const label = match[1].trim();
-      const content = match[2].trim();
-
-      // Check if content has multiple items (circuit style)  
-      // Look for pattern with commas: "Ex1, Ex2, Ex3"
-      if (content.includes(',') && (content.match(/,/g) || []).length >= 2) {
-        // This is a circuit/list  
-        bullets.push(`${label}:`);
-
-        // Split on commas and add as sub-items
-        content.split(',').forEach(item => {
-          const cleaned = item.trim();
-          if (cleaned.length > 2) {
-            bullets.push(`  • ${cleaned}`);
-          }
-        });
-      } else {
-        // Single item, add normally
-        bullets.push(line);
-      }
-    } else {
-      // No colon, add as-is
-      bullets.push(line);
+    if (cleaned.length > 5) {
+      bullets.push(cleaned);
     }
   }
-  return bullets.length >= 2 ? bullets : [];
+
+  // Return bullets if we have at least 1, otherwise return empty to show original text
+  return bullets.length > 0 ? bullets : [];
 }
 
 // Helper function to parse meals into sections
