@@ -162,89 +162,67 @@ const pdfStyles = StyleSheet.create({
   },
 });
 
-// IMPROVED: Helper function to parse workout into bullet points
+// Helper: Normalize PDF text (fix common artifacts)
+function normalizeText(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/\u00A0/g, ' ')  // Non-breaking spaces
+    .replace(/-\n\s*/g, '')   // Hyphenated line breaks: "car-dio\n" -> "cardio"
+    .replace(/([a-zA-Z])- ([a-zA-Z])/g, '$1$2')  // Mid-word hyphens: "pro-tein" -> "protein"
+    .replace(/\s+/g, ' ')     // Multiple spaces -> single
+    .trim();
+}
+
+// IMPROVED: Workout parser
 function parseWorkoutIntoBullets(workout: string): string[] {
-  if (!workout || workout.trim().length === 0) return [];
+  const normalized = normalizeText(workout);
+  if (!normalized) return [];
 
   const bullets: string[] = [];
-
-  // AI generates workouts like: "Warm-up: 5 min; Squats: 3 sets of 12 reps; Push-ups: 3 sets"
-  // Split on both semicolons AND newlines
-  const parts = workout
-    .split(/[;\n]/)
+  // Split on more delimiters: ; . - | • \n
+  const parts = normalized
+    .split(/[,;.\-|•]\s*|\n+/)
     .map(p => p.trim())
-    .filter(p => p.length > 5);
+    .filter(p => p.length > 2);  // Lower threshold
 
-  // Each part should be an exercise like "Warm-up: 5 min light cardio"
   for (const part of parts) {
-    // Clean up any leading bullets or numbers
-    const cleaned = part.replace(/^[•\-\d+\.]\s*/, '').trim();
-
-    if (cleaned.length > 5) {
+    // Enhanced cleaning: numbers/lists/bullets
+    const cleaned = part.replace(/^(?:[\d•*➤\-+)]|[ivxlcIVXLC]+)\.?\s*/i, '').trim();
+    if (cleaned.length > 2) {
       bullets.push(cleaned);
     }
   }
 
-  // Return bullets if we have at least 1, otherwise return empty to show original text
-  return bullets.length > 0 ? bullets : [];
+  return bullets.length > 0 ? bullets : [normalized];  // Fallback to full text
 }
 
-// Helper function to parse meals into sections
+// IMPROVED: Meals parser (complete implementation)
 function parseMealsIntoSections(meals: string): { [key: string]: string[] } {
-  if (!meals || meals.trim().length === 0) return {};
+  const normalized = normalizeText(meals);
+  if (!normalized) return {};
 
   const sections: { [key: string]: string[] } = {};
-  const mealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Pre-Workout', 'Post-Workout'];
+  const mealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Pre-Workout', 'Post-Workout', 'Brunch', 'Supper'];
 
-  // Create a regex pattern that matches any of the meal types
-  const allTypesPattern = mealTypes.join('|');
-
-  mealTypes.forEach(mealType => {
-    // Regex: Match the meal type, optional colon, then capture everything until the next meal type or end of string
-    const regex = new RegExp(`${mealType}\\s*:?\\s*([\\s\\S]+?)(?=(?:${allTypesPattern})|$)`, 'i');
-    const match = meals.match(regex);
-
-    if (match && match[1]) {
-      const content = match[1].trim();
-
-      let items: string[] = [];
-
-      if (content.includes('\n')) {
-        items = content
-          .split(/\n/)
-          .map(item => item.trim())
-          .map(item => item.replace(/^[•\-\d+\.]+\s*/, '')) // Remove bullets
-          .filter(item => item.length > 2);
-      } else {
-        items = content
-          .split(/[,;]/)
-          .map(item => item.trim())
-          .map(item => item.replace(/^[•\-\d+\.]+\s*/, ''))
-          .filter(item => item.length > 2);
-      }
-
-      if (items.length > 0) {
-        sections[mealType] = items.slice(0, 8);
-      }
+  // Find all sections by splitting on headers
+  let remaining = normalized;
+  for (const mealType of mealTypes) {
+    const regex = new RegExp(`^(${mealType})\\s*:?\\s*(.*?)(?=(?:${mealTypes.join('|')})[:\\n]|$)`, 'i');
+    const match = regex.exec(remaining);
+    if (match) {
+      const content = match[2].trim();
+      sections[mealType] = parseWorkoutIntoBullets(content);  // Reuse bullet parser!
+      remaining = remaining.slice(match.index + match[0].length);  // Advance
     }
-  });
+  }
 
-  // If no specific sections were found, fall back to generic parsing
+  // Fallback: If no sections, treat whole as 'Meals'
   if (Object.keys(sections).length === 0) {
-    const items = meals
-      .split(/[,;\n]/)
-      .map(item => item.trim())
-      .filter(item => item.length > 3)
-      .slice(0, 10);
-
-    if (items.length > 0) {
-      sections['Daily Nutrition'] = items;
-    }
+    sections['Meals'] = parseWorkoutIntoBullets(normalized);
   }
 
   return sections;
 }
-
 // ✅ FIXED: Added proper null checks and type safety
 const FitnessPDF = ({ data, plan }: { data: any; plan: any }) => {
   // Safety checks
