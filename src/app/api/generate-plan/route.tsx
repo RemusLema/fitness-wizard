@@ -169,7 +169,7 @@ function parseWorkoutIntoBullets(workout: string): string[] {
   const bullets: string[] = [];
 
   // Split by newlines first to get sections (warm-up, circuit, cooldown, etc.)
-  const lines = workout.split(/\n/).map(l => l.trim()).filter(l => l.length > 5);
+  const lines = workout.split(/\\n/).map(l => l.trim()).filter(l => l.length > 5);
 
   for (const line of lines) {
     // Pattern: "Label: content" or "Label - content"
@@ -201,53 +201,6 @@ function parseWorkoutIntoBullets(workout: string): string[] {
       bullets.push(line);
     }
   }
-
-  return bullets.length >= 2 ? bullets : [];
-}
-
-// Helper function to parse meals into sections
-function parseMealsIntoSections(meals: string): { [key: string]: string[] } {
-  if (!meals || meals.trim().length === 0) return {};
-
-  const sections: { [key: string]: string[] } = {};
-  const mealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Pre-Workout', 'Post-Workout'];
-
-  mealTypes.forEach(mealType => {
-    const regex = new RegExp(`${mealType}\\s*:?\\s*([^A-Z]+)`, 'i');
-    const match = meals.match(regex);
-
-    if (match && match[1]) {
-      const items = match[1]
-        .split(/[,;]|(?=\d+\.)/)
-        .map(item => item.trim())
-        .map(item => item.replace(/^[•\-\d+\.]+\s*/, ''))
-        .filter(item => item.length > 2)
-        .slice(0, 8);
-
-      if (items.length > 0) {
-        sections[mealType] = items;
-      }
-    }
-  });
-
-  if (Object.keys(sections).length === 0) {
-    const items = meals
-      .split(/[,;\n]/)
-      .map(item => item.trim())
-      .filter(item => item.length > 3)
-      .slice(0, 10);
-
-    if (items.length > 0) {
-      sections['Daily Nutrition'] = items;
-    }
-  }
-
-  return sections;
-};
-
-// ✅ FIXED: Added proper null checks and type safety
-const FitnessPDF = ({ data, plan }: { data: any; plan: any }) => {
-  // Safety checks
   const safeName = data?.name || "Athlete";
   const safeTitle = plan?.title || "Fitness Plan";
   const safeIntro = plan?.introduction || "Your personalized fitness journey starts here!";
