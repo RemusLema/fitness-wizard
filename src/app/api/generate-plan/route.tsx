@@ -179,16 +179,17 @@ function parseWorkoutIntoBullets(workout: string): string[] {
   if (!normalized) return [];
 
   const bullets: string[] = [];
-  // Split on more delimiters: ; . - | • \n
+  // Split ONLY on: semicolons, newlines, commas followed by space
+  // DO NOT split on periods or hyphens (preserves "push-ups", "3.5 mins", etc.)
   const parts = normalized
-    .split(/[,;.\-|•]\s*|\n+/)
+    .split(/[;,]\s+|\n+/)  // Semicolon, comma+space, or newlines
     .map(p => p.trim())
-    .filter(p => p.length > 2);  // Lower threshold
+    .filter(p => p.length > 3);  // Slightly higher threshold
 
   for (const part of parts) {
-    // Enhanced cleaning: numbers/lists/bullets
-    const cleaned = part.replace(/^(?:[\d•*➤\-+)]|[ivxlcIVXLC]+)\.?\s*/i, '').trim();
-    if (cleaned.length > 2) {
+    // Enhanced cleaning: numbers/lists/bullets at START only
+    const cleaned = part.replace(/^(?:[\d•*➤\-+)]\s+)/i, '').trim();
+    if (cleaned.length > 3) {
       bullets.push(cleaned);
     }
   }
@@ -309,7 +310,7 @@ const FitnessPDF = ({ data, plan }: { data: any; plan: any }) => {
                         <Text style={pdfStyles.subHeader}>Timing</Text>
                         <Text style={pdfStyles.text}>{timing}</Text>
 
-                        <Text style={pdfStyles.subHeader}>💪 Workout</Text>
+                        <Text style={pdfStyles.subHeader}>WORKOUT</Text>
                         {workoutBullets.length > 0 ? (
                           workoutBullets.map((exercise, idx) => (
                             <Text key={idx} style={pdfStyles.bulletPoint}>
@@ -320,7 +321,7 @@ const FitnessPDF = ({ data, plan }: { data: any; plan: any }) => {
                           <Text style={pdfStyles.text}>{workout}</Text>
                         )}
 
-                        <Text style={pdfStyles.subHeader}>🍽️ Nutrition</Text>
+                        <Text style={pdfStyles.subHeader}>NUTRITION</Text>
                         {Object.keys(mealSections).length > 0 ? (
                           Object.entries(mealSections).map(([mealType, items], idx) => (
                             <View key={idx} style={pdfStyles.mealSection}>
