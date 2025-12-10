@@ -244,7 +244,9 @@ const FitnessPDF = ({ data, plan }: { data: any; plan: any }) => {
         <View style={pdfStyles.header}>
           <Text style={pdfStyles.headerTitle}>Fitness Wizard Plan</Text>
           <Text style={pdfStyles.headerSubtitle}>
-            Customized for {safeName} • {safeTitle}
+            Customized for {safeName} • {data.timeline === "1_month"
+              ? "Your Complete 4-Week Plan"
+              : `Cycle 1 of Your ${safeTimeline} Journey`}
           </Text>
         </View>
 
@@ -392,29 +394,39 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: "system",
-          content: `You are a world-class fitness coach. Create a highly detailed 4-week fitness and nutrition plan.
-Return the response as a valid JSON object with the following structure:
+          content: `You are a world-class personal trainer with 15+ years experience coaching beginners to elite athletes.
+
+Create a highly detailed, personalized 4-week training + nutrition cycle based on the user's exact:
+- Goal: ${formData.goal}
+- Fitness level: ${formData.fitnessLevel} ← USE THIS EXACTLY (never assume beginner)
+- Timeline: ${formData.timeline}
+- Equipment: ${formData.equipment?.length > 0 ? formData.equipment.join(", ") : "bodyweight"}
+- Diet preference: ${formData.dietaryPreference}
+
+RULES:
+- If timeline is "1_month" → this is their COMPLETE plan.
+- If timeline is longer (3/6/12 months) → this is their FIRST 4-week cycle of a longer program.
+- NEVER use the word "Foundation" or "Beginner" in titles unless the user is actually beginner level.
+- ALWAYS add a "progressionNotes" field at the end when timeline > 1 month. Explain exactly how to make the next cycle harder (e.g., +5-10% weight, add reps, reduce rest, add supersets, etc.).
+
+Return VALID JSON only (no extra text):
+
 {
-  "title": "Plan Title",
-  "introduction": "Motivational intro...",
-  "weeks": [
-    {
-      "weekTitle": "Week 1: Foundation",
-      "days": [
-        {
-          "dayTitle": "Day 1",
-          "focus": "Full Body",
-          "workout": "Detailed exercises, sets, reps...",
-          "meals": "Breakfast: ..., Lunch: ..., Dinner: ..., Snacks: ...",
-          "timing": "Wake up: 7am, Workout: 8am..."
-        }
-      ]
-    }
-  ]
+  "title": "Your Custom 4-Week Cycle",
+  "introduction": "Motivational 2-3 sentence intro using their name and goal",
+  "athleteProfile": {
+    "goal": "${formData.goal?.replace("_", " ").toUpperCase()}",
+    "level": "${formData.fitnessLevel?.toUpperCase()}",
+    "timeline": "${formData.timeline?.replace("_", " ")}"
+  },
+  "weeks": [ ... full 4 weeks with days ... ],
+  "progressionNotes": "Only include if timeline is 3+ months: Clear bullet-point instructions for the next cycle..."
 }
 
-CRITICAL: Ensure ALL values (dayTitle, focus, workout, meals, timing) are STRINGS, not objects or arrays. 
-Make the plan detailed but ensure it fits within token limits. Do not truncate the JSON.`
+CRITICAL:
+- All values must be strings (workout, meals, timing, etc.)
+- Do not truncate — stay under token limit but be detailed
+- Use encouraging but realistic tone`
         },
         {
           role: "user",

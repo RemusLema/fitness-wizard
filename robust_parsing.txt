@@ -1,0 +1,61 @@
+// Helper: Normalize PDF text (fix common artifacts)
+function normalizeText(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/\u00A0/g, ' ')  // Non-breaking spaces
+    .replace(/-\n\s*/g, '')   // Hyphenated line breaks: "car-dio\n" -> "cardio"
+    .replace(/([a-zA-Z])- ([a-zA-Z])/g, '$1$2')  // Mid-word hyphens: "pro-tein" -> "protein"
+    .replace(/\s+/g, ' ')     // Multiple spaces -> single
+    .trim();
+}
+
+// IMPROVED: Workout parser
+function parseWorkoutIntoBullets(workout: string): string[] {
+  const normalized = normalizeText(workout);
+  if (!normalized) return [];
+
+  const bullets: string[] = [];
+  // Split on more delimiters: ; . - | • \n
+  const parts = normalized
+    .split(/[,;.\-|•]\s*|\n+/)
+    .map(p => p.trim())
+    .filter(p => p.length > 2);  // Lower threshold
+
+  for (const part of parts) {
+    // Enhanced cleaning: numbers/lists/bullets
+    const cleaned = part.replace(/^(?:[\d•*➤\-+)]|[ivxlcIVXLC]+)\.?\s*/i, '').trim();
+    if (cleaned.length > 2) {
+      bullets.push(cleaned);
+    }
+  }
+
+  return bullets.length > 0 ? bullets : [normalized];  // Fallback to full text
+}
+
+// IMPROVED: Meals parser (complete implementation)
+function parseMealsIntoSections(meals: string): { [key: string]: string[] } {
+  const normalized = normalizeText(meals);
+  if (!normalized) return {};
+
+  const sections: { [key: string]: string[] } = {};
+  const mealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Pre-Workout', 'Post-Workout', 'Brunch', 'Supper'];
+
+  // Find all sections by splitting on headers
+  let remaining = normalized;
+  for (const mealType of mealTypes) {
+    const regex = new RegExp(`^(${mealType})\\s*:?\\s*(.*?)(?=(?:${mealTypes.join('|')})[:\\n]|$)`, 'i');
+    const match = regex.exec(remaining);
+    if (match) {
+      const content = match[2].trim();
+      sections[mealType] = parseWorkoutIntoBullets(content);  // Reuse bullet parser!
+      remaining = remaining.slice(match.index + match[0].length);  // Advance
+    }
+  }
+
+  // Fallback: If no sections, treat whole as 'Meals'
+  if (Object.keys(sections).length === 0) {
+    sections['Meals'] = parseWorkoutIntoBullets(normalized);
+  }
+
+  return sections;
+}

@@ -1,0 +1,26 @@
+// IMPROVED: Helper function to parse workout into bullet points
+function parseWorkoutIntoBullets(workout: string): string[] {
+  if (!workout || workout.trim().length === 0) return [];
+
+  const bullets: string[] = [];
+
+  // AI generates workouts like: "Warm-up: 5 min; Squats: 3 sets of 12 reps; Push-ups: 3 sets"
+  // Split on both semicolons AND newlines
+  const parts = workout
+    .split(/[;\n]/)
+    .map(p => p.trim())
+    .filter(p => p.length > 5);
+
+  // Each part should be an exercise like "Warm-up: 5 min light cardio"
+  for (const part of parts) {
+    // Clean up any leading bullets or numbers
+    const cleaned = part.replace(/^[•\-\d+\.]\s*/, '').trim();
+    
+    if (cleaned.length > 5) {
+      bullets.push(cleaned);
+    }
+  }
+
+  // Return bullets if we have at least 1, otherwise return empty to show original text
+  return bullets.length > 0 ? bullets : [];
+}
