@@ -188,7 +188,7 @@ function parseWorkoutIntoBullets(workout: string): string[] {
 
   for (const part of parts) {
     // Enhanced cleaning: numbers/lists/bullets at START only
-    const cleaned = part.replace(/^\s*\d+\.?\s+/, '').trim();  // Strip leading numbers like "1. " or "2 "
+    const cleaned = part.replace(/^\s*\d+\.\s+/, '').trim();  // Strip ONLY numbered lists like "1. " (requires period)
     if (cleaned.length > 3) {
       bullets.push(cleaned);
     }
@@ -314,7 +314,7 @@ const FitnessPDF = ({ data, plan }: { data: any; plan: any }) => {
                         {workoutBullets.length > 0 ? (
                           workoutBullets.map((exercise, idx) => (
                             <Text key={idx} style={pdfStyles.bulletPoint}>
-                              {exercise}
+                              • {exercise}
                             </Text>
                           ))
                         ) : (
