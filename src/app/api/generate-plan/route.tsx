@@ -419,13 +419,48 @@ Return VALID JSON only (no extra text):
     "level": "${formData.fitnessLevel?.toUpperCase()}",
     "timeline": "${formData.timeline?.replace("_", " ")}"
   },
-  "weeks": [ ... full 4 weeks with days ... ],
-  "progressionNotes": "Only include if timeline is 3+ months: Clear bullet-point instructions for the next cycle..."
+  "weeks": [
+    {
+      "weekTitle": "Week 1: Strength Building",
+      "days": [
+        {
+          "dayTitle": "Day 1",
+          "focus": "Upper Body Strength",
+          "timing": "Wake: 7am, Workout: 8am, Meals: 12pm/3pm/7pm",
+          "workout": "Push-ups: 3 sets of 12 reps; Dumbbell Bench Press: 4 sets of 8-10 reps; Overhead Press: 3 sets of 10 reps; Tricep Dips: 3 sets of 12 reps; Plank: 3 sets of 45 seconds",
+          "meals": "Breakfast: Oatmeal with banana and almonds (400 cal); Lunch: Grilled chicken with quinoa and vegetables (550 cal); Dinner: Salmon with sweet potato and broccoli (600 cal); Snacks: Greek yogurt, protein shake"
+        },
+        {
+          "dayTitle": "Day 2",
+          "focus": "Lower Body Strength",
+          "timing": "Wake: 7am, Workout: 8am, Meals: 12pm/3pm/7pm",
+          "workout": "Squats: 4 sets of 10 reps; Deadlifts: 3 sets of 8 reps; Lunges: 3 sets of 12 reps per leg; Leg Press: 3 sets of 15 reps; Calf Raises: 4 sets of 20 reps",
+          "meals": "Breakfast: Scrambled eggs with whole grain toast (450 cal); Lunch: Turkey wrap with avocado (500 cal); Dinner: Lean beef stir-fry with brown rice (650 cal); Snacks: Protein bar, mixed nuts"
+        }
+      ]
+    },
+    {
+      "weekTitle": "Week 2: Progressive Overload",
+      "days": [ ... continue with 7 days ... ]
+    },
+    {
+      "weekTitle": "Week 3: Intensity",
+      "days": [ ... continue with 7 days ... ]
+    },
+    {
+      "weekTitle": "Week 4: Peak Performance",
+      "days": [ ... continue with 7 days ... ]
+    }
+  ],
+  "progressionNotes": "Include ONLY if timeline is 3+ months: Week 5-8: Increase weights by 5-10%; Add 1-2 reps per set; Reduce rest time by 15 seconds; Introduce supersets on upper body days"
 }
 
-CRITICAL:
-- All values must be strings (workout, meals, timing, etc.)
-- Do not truncate — stay under token limit but be detailed
+CRITICAL FORMATTING INSTRUCTIONS:
+- Each week MUST have 7 days (Day 1-7) with complete details
+- "workout" field: Use semicolons to separate exercises. Format: "Exercise Name: Sets x Reps; Next Exercise: Sets x Reps"
+- "meals" field: Use format "Breakfast: food details (calories); Lunch: food details (calories); Dinner: food details (calories); Snacks: items"
+- All values (dayTitle, focus, workout, meals, timing) MUST be STRINGS, never objects or arrays
+- Be detailed but stay under token limit — do NOT truncate the JSON
 - Use encouraging but realistic tone`
         },
         {
