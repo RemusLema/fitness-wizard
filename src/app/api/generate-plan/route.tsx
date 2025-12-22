@@ -379,7 +379,7 @@ const FitnessPDF = ({ data, plan }: { data: any; plan: any }) => {
         {plan.progressionNotes && data.timeline !== "1_month" && (
           <View style={pdfStyles.progressionSection}>
             <Text style={pdfStyles.progressionTitle}>
-              🎯 Progression Plan for Your {safeTimeline} Journey
+              Progression Plan for Your {safeTimeline} Journey
             </Text>
             <Text style={pdfStyles.progressionText}>
               {plan.progressionNotes}
@@ -438,7 +438,11 @@ Create a highly detailed, personalized 4-week training + nutrition cycle based o
 RULES:
 - If timeline is "1_month" → this is their COMPLETE plan. Do NOT include "progressionNotes" field.
 - If timeline is "3_months", "6_months", or "12_months" → this is Cycle 1 of a multi-cycle program. You MUST include a "progressionNotes" field explaining how to progress in the next 4-week cycle.
-- NEVER use the word "Foundation" or "Beginner" in titles unless the user is actually beginner level.
+- Use fitness-level-appropriate week titles:
+  * If fitness level is 'beginner', use titles like 'Week 1: Foundation', 'Week 2: Building Strength'
+  * If 'intermediate', use 'Week 1: Build', 'Week 2: Progressive Load'
+  * If 'advanced', use 'Week 1: Peak', 'Week 2: Intensity Push'
+- Avoid using "Beginner" in titles unless the user's fitness level is actually beginner.
 
 Return VALID JSON only (no extra text):
 
