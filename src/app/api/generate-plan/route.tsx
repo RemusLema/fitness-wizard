@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { Document, Page, Text, View, StyleSheet, pdf } from "@react-pdf/renderer";
+import { BonusPDF } from "@/lib/BonusPDF";
 import { Resend } from "resend";
 
 const openai = new OpenAI({
@@ -437,7 +438,7 @@ Create a highly detailed, personalized 4-week training + nutrition cycle based o
 
 RULES:
 - If timeline is "1_month" → this is their COMPLETE plan. Do NOT include "progressionNotes" field.
-- If timeline is "3_months", "6_months", or "12_months" → this is Cycle 1 of a multi-cycle program. You MUST include a "progressionNotes" field explaining how to progress in the next 4-week cycle.
+- If timeline is "3_months" or "6_months" → this is Cycle 1 of a multi-cycle program. You MUST include a "progressionNotes" field explaining how to progress in the next 4-week cycle.
 - Use fitness-level-appropriate week titles:
   * If fitness level is 'beginner', use titles like 'Week 1: Foundation', 'Week 2: Building Strength'
   * If 'intermediate', use 'Week 1: Build', 'Week 2: Progressive Load'
@@ -495,7 +496,7 @@ CRITICAL FORMATTING INSTRUCTIONS:
 - "workout" field: Use semicolons to separate exercises. Format: "Exercise Name: Sets x Reps; Next Exercise: Sets x Reps"
 - "meals" field: Use format "Breakfast: food details (calories); Lunch: food details (calories); Dinner: food details (calories); Snacks: items"
 - All values (dayTitle, focus, workout, meals, timing) MUST be STRINGS, never objects or arrays
-- **progressionNotes requirement**: If timeline is "3_months", "6_months", or "12_months" → "progressionNotes" field is MANDATORY. Provide specific progression instructions (weight increases, rep additions, rest reductions, exercise progressions)
+- **progressionNotes requirement**: If timeline is "3_months" or "6_months" → "progressionNotes" field is MANDATORY. Provide specific progression instructions (weight increases, rep additions, rest reductions, exercise progressions)
 - Be detailed but stay under token limit — do NOT truncate the JSON
 - Use encouraging but realistic tone`
         },
@@ -563,6 +564,35 @@ CRITICAL FORMATTING INSTRUCTIONS:
       throw new Error("Failed to generate PDF document");
     }
 
+    // Generate Bonus PDF for 12-week and 6-month timelines
+    let bonusBuffer: Buffer | null = null;
+    let bonusFilename = "";
+
+    if (formData.timeline === "12_weeks" || formData.timeline === "6_months") {
+      try {
+        console.log("📄 Generating bonus PDF for timeline:", formData.timeline);
+        const bonusPdfDoc = (
+          <BonusPDF
+            name={formData.name}
+            goal={formData.goal?.replace(/_/g, " ") || "fitness"}
+            level={formData.fitnessLevel || "intermediate"}
+            timeline={formData.timeline}
+          />
+        );
+        const bonusPdfBlob = await pdf(bonusPdfDoc).toBlob();
+        bonusBuffer = Buffer.from(await bonusPdfBlob.arrayBuffer());
+        bonusFilename =
+          formData.timeline === "12_weeks"
+            ? "Bonus_12_Week_Roadmap.pdf"
+            : "Bonus_6_Month_Blueprint.pdf";
+        console.log("✅ Bonus PDF generated successfully:", bonusFilename);
+      } catch (bonusError) {
+        console.error("❌ Bonus PDF generation failed:", bonusError);
+        // Don't fail the entire request if bonus PDF fails
+        bonusBuffer = null;
+      }
+    }
+
     const response: any = { success: true, message: "Plan ready!" };
 
     // ✅ FIXED: Better plain text formatting with safety checks
@@ -616,8 +646,8 @@ ${plainTextPlan}
                 <!-- PDF Attached Notice -->
                 <div style="text-align:center; margin:32px 0; padding:20px; background:#f0fdf4; border-radius:12px; border-left:4px solid #10b981;">
                   <p style="margin:0; color:#047857; font-size:16px;">
-                    📎 <strong>Full PDF is attached to this email</strong><br>
-                    <span style="font-size:14px; opacity:0.8;">Download it for offline access and detailed breakdowns</span>
+                    📎 <strong>${bonusBuffer ? "2 PDFs attached" : "Full PDF is attached"} to this email</strong><br>
+                    <span style="font-size:14px; opacity:0.8;">${bonusBuffer ? "Your 4-week plan + bonus roadmap for long-term success!" : "Download it for offline access and detailed breakdowns"}</span>
                   </p>
                 </div>
 
@@ -647,10 +677,20 @@ ${plainTextPlan}
               </div>
             </div>
           `,
-          attachments: [{
-            filename: "Your_AI_Fitness_Plan.pdf",
-            content: pdfBuffer
-          }]
+          attachments: [
+            {
+              filename: "Your_4_Week_Plan.pdf",
+              content: pdfBuffer,
+            },
+            ...(bonusBuffer
+              ? [
+                {
+                  filename: bonusFilename,
+                  content: bonusBuffer,
+                },
+              ]
+              : []),
+          ]
         });
         console.log("✅ Email sent successfully");
       } catch (emailError) {

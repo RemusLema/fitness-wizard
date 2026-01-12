@@ -140,7 +140,6 @@ const sections: Section[] = [
               <option value="1_month">1 Month</option>
               <option value="3_months">3 Months</option>
               <option value="6_months">6 Months</option>
-              <option value="1_year">1 Year +</option>
             </select>
           </div>
         </div>
