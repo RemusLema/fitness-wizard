@@ -42,8 +42,8 @@ const pdfStyles = StyleSheet.create({
     color: "#e9d5ff",
   },
   section: {
-    marginBottom: 15,
-    padding: 15,
+    marginBottom: 10,
+    padding: 10,
     backgroundColor: "#f8fafc",
     borderRadius: 8,
     borderLeftWidth: 4,
@@ -67,8 +67,8 @@ const pdfStyles = StyleSheet.create({
     paddingBottom: 5,
   },
   dayContainer: {
-    marginBottom: 15,
-    padding: 12,
+    marginBottom: 10,
+    padding: 8,
     backgroundColor: "#fff",
     borderWidth: 1,
     borderColor: "#e2e8f0",
@@ -137,8 +137,8 @@ const pdfStyles = StyleSheet.create({
     paddingLeft: 10,
   },
   mealSection: {
-    marginTop: 8,
-    marginBottom: 8,
+    marginTop: 4,
+    marginBottom: 4,
   },
   mealType: {
     fontSize: 10,
@@ -158,13 +158,13 @@ const pdfStyles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: "#7c3aed",
     borderRadius: 8,
-    padding: 14,
-    marginBottom: 16,
+    padding: 8,
+    marginBottom: 10,
   },
   progressionSection: {
-    marginTop: 20,
-    marginBottom: 20,
-    padding: 16,
+    marginTop: 15,
+    marginBottom: 15,
+    padding: 12,
     backgroundColor: "#f0f4ff",
     borderRadius: 8,
     borderLeftWidth: 6,
@@ -439,11 +439,12 @@ Create a highly detailed, personalized 4-week training + nutrition cycle based o
 RULES:
 - If timeline is "1_month" → this is their COMPLETE plan. Do NOT include "progressionNotes" field.
 - If timeline is "3_months" or "6_months" → this is Cycle 1 of a multi-cycle program. You MUST include a "progressionNotes" field explaining how to progress in the next 4-week cycle.
-- Use fitness-level-appropriate week titles:
-  * If fitness level is 'beginner', use titles like 'Week 1: Foundation', 'Week 2: Building Strength'
-  * If 'intermediate', use 'Week 1: Build', 'Week 2: Progressive Load'
-  * If 'advanced', use 'Week 1: Peak', 'Week 2: Intensity Push'
-- Avoid using "Beginner" in titles unless the user's fitness level is actually beginner.
+- Use level-specific week titles (CRITICAL - follow these patterns EXACTLY):
+  * Beginner level: "Week 1: Foundation", "Week 2: Form Building", "Week 3: Strength Introduction", "Week 4: Consistency"
+  * Intermediate level: "Week 1: Build Strength", "Week 2: Progressive Load", "Week 3: Intensity Increase", "Week 4: Power Week"
+  * Advanced level: "Week 1: Peak Performance", "Week 2: Intensity Push", "Week 3: Maximum Load", "Week 4: Elite Challenge"
+- NEVER use generic titles like "Strength Building" - always match the user's exact fitness level.
+- Week titles must reflect progressive difficulty within the user's level.
 
 Return VALID JSON only (no extra text):
 
