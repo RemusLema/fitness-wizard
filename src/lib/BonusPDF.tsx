@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
 /**
  * Timeline type for better type safety
  */
-type Timeline = "12_weeks" | "6_months";
+type Timeline = "3_months" | "6_months";
 
 interface BonusPDFProps {
     name: string;
@@ -163,15 +163,15 @@ interface BonusPDFProps {
  * Generates a personalized fitness roadmap PDF with progress tracking and motivation
  */
 export const BonusPDF = ({ name, goal, level, timeline }: BonusPDFProps) => {
-    const is12Week = timeline === "12_weeks";
-    const duration = is12Week ? "12-Week Transformation" : "6-Month Mastery";
+    const is3Month = timeline === "3_months";
+    const duration = is3Month ? "3-Month Transformation" : "6-Month Mastery";
     const firstName = name.split(" ")[0] || name;
 
     // Milestone data based on timeline
-    const milestones12Week = [
-        { week: "Weeks 1-4", description: "Foundation & Form ✓", completed: true },
-        { week: "Weeks 5-8", description: "Progressive Overload", completed: false },
-        { week: "Weeks 9-12", description: "Peak Performance", completed: false },
+    const milestones3Month = [
+        { week: "Month 1", description: "Foundation & Form ✓", completed: true },
+        { week: "Month 2", description: "Building Strength", completed: false },
+        { week: "Month 3", description: "Peak Performance", completed: false },
     ];
 
     const milestones6Month = [
@@ -183,7 +183,7 @@ export const BonusPDF = ({ name, goal, level, timeline }: BonusPDFProps) => {
         { week: "Month 6", description: "Consolidation & Celebration", completed: false },
     ];
 
-    const milestones = is12Week ? milestones12Week : milestones6Month;
+    const milestones = is3Month ? milestones3Month : milestones6Month;
 
     return (
         <Document>
@@ -243,7 +243,7 @@ export const BonusPDF = ({ name, goal, level, timeline }: BonusPDFProps) => {
                     <Text style={styles.bullet}>
                         • Weeks 9-12: Add supersets/drop sets, introduce advanced variations
                     </Text>
-                    {!is12Week && (
+                    {!is3Month && (
                         <>
                             <Text style={styles.bullet}>
                                 • Months 4-5: Strength & endurance focus — higher volume, new

@@ -568,7 +568,7 @@ CRITICAL FORMATTING INSTRUCTIONS:
     let bonusBuffer: Buffer | null = null;
     let bonusFilename = "";
 
-    if (formData.timeline === "12_weeks" || formData.timeline === "6_months") {
+    if (formData.timeline === "3_months" || formData.timeline === "6_months") {
       try {
         console.log("📄 Generating bonus PDF for timeline:", formData.timeline);
         const bonusPdfDoc = (
@@ -582,8 +582,8 @@ CRITICAL FORMATTING INSTRUCTIONS:
         const bonusPdfBlob = await pdf(bonusPdfDoc).toBlob();
         bonusBuffer = Buffer.from(await bonusPdfBlob.arrayBuffer());
         bonusFilename =
-          formData.timeline === "12_weeks"
-            ? "Bonus_12_Week_Roadmap.pdf"
+          formData.timeline === "3_months"
+            ? "Bonus_3_Month_Roadmap.pdf"
             : "Bonus_6_Month_Blueprint.pdf";
         console.log("✅ Bonus PDF generated successfully:", bonusFilename);
       } catch (bonusError) {
