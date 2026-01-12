@@ -77,7 +77,6 @@ const styles = StyleSheet.create({
         color: "#4c1d95",
         lineHeight: 24,
         textAlign: "center",
-        fontStyle: "italic",
     },
     quoteAuthor: {
         fontSize: 12,
