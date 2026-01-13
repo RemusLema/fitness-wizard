@@ -554,144 +554,66 @@ CRITICAL FORMATTING INSTRUCTIONS:
     console.log("📄 Generating PDF...");
 
     // Generate PDF with error boundary
-    // Generate Main PDF (Isolated function to free memory)
+    // 4. Generate Main PDF (Isolated function to free memory)
     const pdfBuffer = await generateMainPDF(formData, aiPlan);
     console.log("✅ Main PDF generated, size:", pdfBuffer.length);
 
-    // Generate Bonus PDF (Conditionally & Isolated)
-    let bonusBuffer: Buffer | null = null;
-    let bonusFilename = "";
-
-    if (formData.timeline === "3_months" || formData.timeline === "6_months") {
-      try {
-        console.log("📄 Generating bonus PDF for timeline:", formData.timeline);
-
-        // Generate bonus PDF in isolated scope
-        const result = await generateBonusPDF(formData);
-        bonusBuffer = result.buffer;
-        bonusFilename = result.filename;
-
-        console.log("✅ Bonus PDF generated successfully:", bonusFilename);
-      } catch (bonusError) {
-        console.error("❌ Bonus PDF generation failed:", bonusError);
-        // Don't fail the entire request if bonus PDF fails
-        bonusBuffer = null;
-      }
-    }
-
-    const response: any = { success: true, message: "Plan ready!" };
-
-    // ✅ FIXED: Better plain text formatting with safety checks
-    const plainTextPlan = `
-${aiPlan.title || "Your Fitness Plan"}
-
-${aiPlan.introduction || ""}
-
-${Array.isArray(aiPlan.weeks) ? aiPlan.weeks.map((w: any, wIdx: number) => `
-${w?.weekTitle || `Week ${wIdx + 1}`}
-${Array.isArray(w?.days) ? w.days.map((d: any, dIdx: number) => `
-  ${d?.dayTitle || `Day ${dIdx + 1}`}: ${d?.focus || "Training"}
-  Timing: ${d?.timing || "Flexible"}
-  Workout: ${d?.workout || "See plan"}
-  Meals: ${d?.meals || "Balanced nutrition"}
-`).join('\n') : 'No days scheduled'}
-`).join('\n') : 'Plan details unavailable'}
-    `.trim();
-
-    response.plan = plainTextPlan;
-
-    // Email with PDF
+    // 5. Send Email (Main Plan Only)
     if (want?.email && formData.email) {
-      try {
-        console.log("📧 Sending email to:", formData.email);
-        await resend.emails.send({
-          from: "AI Fitness Wizard <noreply@ramafit.xyz>",
-          to: formData.email,
-          subject: `Your Custom Fitness Plan is Here, ${formData.name.split(" ")[0]}!`,
-          html: `
-            <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background:#f9f9f9; padding:20px;">
-              <!-- Header -->
-              <div style="background:#7c3aed; padding:32px 24px; border-radius:16px 16px 0 0; text-align:center; color:white;">
-                <h1 style="margin:0; font-size:28px; font-weight:bold;">Your AI Fitness + Nutrition Plan</h1>
-                <p style="margin:8px 0 0; font-size:18px; opacity:0.95;">4 weeks, custom-built for you</p>
-              </div>
+      if (!process.env.RESEND_API_KEY) {
+        console.warn("⚠️ No RESEND_API_KEY found, skipping email.");
+      } else {
+        try {
+          console.log("📧 Sending email to:", formData.email);
 
-              <!-- Greeting -->
-              <div style="background:white; padding:32px 28px; border-radius:0 0 16px 16px; box-shadow:0 10px 30px rgba(0,0,0,0.08);">
-                <p style="font-size:18px; color:#1f2937;">
-                  Hey <strong>${formData.name.split(" ")[0]}</strong>,<br><br>
-                  Congrats — your personalized plan is ready! 🎉<br><br>
-                  This is built 100% for your goal (${formData.goal?.replace(/_/g, " ") || "fitness"}), current level, and equipment.
+          const durationText = formData.timeline === "1_month" ? "4-Week" :
+            formData.timeline === "3_months" ? "3-Month" :
+              formData.timeline === "6_months" ? "6-Month" : "Custom";
+
+          await resend.emails.send({
+            from: "Fitness Wizard <onboarding@resend.dev>",
+            to: formData.email,
+            subject: `Your Personalized ${durationText} Fitness Plan 🚀`,
+            html: `
+              <div style="font-family: sans-serif; color: #333;">
+                <h1>Your Plan is Ready! 🎉</h1>
+                <p>Hi ${formData.name.split(' ')[0]},</p>
+                <p>Here is your personalized <strong>${durationText}</strong> fitness plan.</p>
+                <p>Open the attachment to view your full 4-week cycle detail!</p>
+                ${(formData.timeline === "3_months" || formData.timeline === "6_months") ? `
+                <p style="color: #666; font-size: 12px; margin-top: 20px;">
+                  <em>* Your bonus roadmap will arrive in a separate email shortly! 🎁</em>
                 </p>
-
-                <!-- Plan -->
-                <div style="background:#f8f9fc; padding:24px; border-radius:12px; margin:24px 0; font-size:15px; line-height:1.7; white-space:pre-wrap; max-height:500px; overflow-y:auto;">
-${plainTextPlan}
-                </div>
-
-                <!-- PDF Attached Notice -->
-                <div style="text-align:center; margin:32px 0; padding:20px; background:#f0fdf4; border-radius:12px; border-left:4px solid #10b981;">
-                  <p style="margin:0; color:#047857; font-size:16px;">
-                    📎 <strong>${bonusBuffer ? "2 PDFs attached" : "Full PDF is attached"} to this email</strong><br>
-                    <span style="font-size:14px; opacity:0.8;">${bonusBuffer ? "Your 4-week plan + bonus roadmap for long-term success!" : "Download it for offline access and detailed breakdowns"}</span>
-                  </p>
-                </div>
-
-                <!-- Closing -->
-                <p style="color:#4b5563; font-size:16px; line-height:1.6;">
-                  You've got this.<br>
-                  Any questions or want tweaks? Just hit reply — I read every single message.
-                </p>
-
-                <!-- Signature -->
-                <div style="margin-top:40px; padding-top:20px; border-top:2px solid #e5e7eb;">
-                  <p style="margin:0; font-weight:bold; color:#1f2937;">Rama</p>
-                  <p style="margin:5px 0; color:#7c3aed; font-weight:600;">Founder & Head Coach</p>
-                  <p style="margin:5px 0 12px; color:#6b7280; font-size:14px;">
-                    AI Fitness Wizard<br>
-                    noreply@ramafit.xyz
-                  </p>
-                </div>
-
-                <!-- Footer -->
-                <div style="margin-top:32px; font-size:12px; color:#9ca3af; text-align:center;">
-                  <p>You're receiving this because you requested your custom plan.<br>
-                  <a href="https://fitness-wizard-kappa.vercel.app" style="color:#7c3aed; text-decoration:none;">fitness-wizard-kappa.vercel.app</a> • 
-                  <a href="mailto:noreply@ramafit.xyz?subject=Unsubscribe" style="color:#9ca3af; text-decoration:underline;">Unsubscribe</a>
-                  </p>
-                </div>
+                ` : ''}
+                <p>Good luck,<br>The Fitness Team</p>
               </div>
-            </div>
-          `,
-          attachments: [
-            {
-              filename: "Your_4_Week_Plan.pdf",
-              content: pdfBuffer,
-            },
-            ...(bonusBuffer
-              ? [
-                {
-                  filename: bonusFilename,
-                  content: bonusBuffer,
-                },
-              ]
-              : []),
-          ]
-        });
-        console.log("✅ Email sent successfully");
-      } catch (emailError) {
-        console.error("❌ Email failed:", emailError);
-        // Don't fail the entire request if email fails
-        response.emailError = "Email delivery failed, but your plan is ready";
+            `,
+            attachments: [
+              {
+                filename: "Your_4_Week_Plan.pdf",
+                content: pdfBuffer,
+              },
+            ],
+          });
+          console.log("✅ Email sent successfully");
+        } catch (emailError) {
+          console.error("❌ Email failed:", emailError);
+          // Don't fail request if email fails, user can download PDF
+        }
       }
     }
 
-    // Add PDF for download
-    if (want?.pdf) {
-      response.pdfUrl = `data:application/pdf;base64,${pdfBuffer.toString("base64")}`;
-    }
+    // Determine bonus eligibility for frontend trigger
+    const isBonusEligible = formData.timeline === "3_months" || formData.timeline === "6_months";
 
-    return NextResponse.json(response);
+    return NextResponse.json({
+      success: true,
+      plan: aiPlan,
+      // We pass the PDF as a base64 string for direct download in browser if needed
+      pdfUrl: `data:application/pdf;base64,${pdfBuffer.toString("base64")}`,
+      emailError: null,
+      isBonusEligible
+    });
 
   } catch (error: any) {
     console.error("❌ Generate plan error:", error);
@@ -714,24 +636,4 @@ async function generateMainPDF(formData: any, planData: any): Promise<Buffer> {
   return Buffer.from(await blob.arrayBuffer());
 }
 
-async function generateBonusPDF(formData: any): Promise<{ buffer: Buffer; filename: string }> {
-  // Create document in local scope
-  const doc = (
-    <BonusPDF
-      name={formData.name}
-      goal={formData.goal?.replace(/_/g, " ") || "fitness"}
-      level={formData.fitnessLevel || "intermediate"}
-      timeline={formData.timeline as "3_months" | "6_months"}
-    />
-  );
-  const blob = await pdf(doc).toBlob();
-
-  const filename = formData.timeline === "3_months"
-    ? "Bonus_3_Month_Roadmap.pdf"
-    : "Bonus_6_Month_Blueprint.pdf";
-
-  return {
-    buffer: Buffer.from(await blob.arrayBuffer()),
-    filename
-  };
-}
+// Removed inline generateBonusPDF since it's now a separate API route

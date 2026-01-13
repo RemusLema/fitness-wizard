@@ -365,6 +365,13 @@ export default function WizardStep() {
           pdfUrl: data.pdfUrl,
           emailError: data.emailError // Pass emailError to state
         });
+
+        // Trigger Bonus PDF generation in background if eligible
+        if (data.isBonusEligible) {
+          console.log("🎁 Eligible for bonus! Triggering background generation...");
+          fireAndForgetBonus(formData);
+        }
+
         localStorage.removeItem("fitnessWizard2025");
         window.dispatchEvent(new CustomEvent("fitness-success"));
       } else {
@@ -376,6 +383,15 @@ export default function WizardStep() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Helper to fire bonus generation without waiting
+  const fireAndForgetBonus = (data: FormData) => {
+    fetch("/api/generate-bonus", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ formData: data }),
+    }).catch(err => console.error("Bonus trigger failed (background):", err));
   };
 
   return (
