@@ -359,9 +359,27 @@ export default function WizardStep() {
       const data = await res.json();
 
       if (data.success) {
+        // Fix: backend now returns object for PDF usage, but frontend needs string for display
+        let displayPlan = "";
+        const p = data.plan;
+
+        if (typeof p === 'object' && p !== null) {
+          // Reconstruct readable string from object
+          displayPlan = `${p.title || "Your Fitness Plan"}\n\n${p.introduction || ""}\n\n`;
+
+          if (Array.isArray(p.weeks)) {
+            displayPlan += p.weeks.map((w: any, i: number) =>
+              `${w.weekTitle || `Week ${i + 1}`}\n` +
+              (w.days ? w.days.map((d: any) => `  ${d.dayTitle}: ${d.focus}\n  Workout: ${d.workout}\n`).join('\n') : '')
+            ).join('\n');
+          }
+        } else {
+          displayPlan = p || "Your plan was generated and sent!";
+        }
+
         setResult({
           success: true,
-          plan: data.plan || "Your plan was generated and sent!",
+          plan: displayPlan,
           pdfUrl: data.pdfUrl,
           emailError: data.emailError // Pass emailError to state
         });
