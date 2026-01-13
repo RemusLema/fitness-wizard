@@ -59,8 +59,10 @@ export async function POST(req: NextRequest) {
             <div style="background-color: #f0f9ff; padding: 15px; border-radius: 8px; border-left: 4px solid #7c3aed; margin: 20px 0;">
               <p style="margin: 0;">This roadmap includes your milestones, progression phases, and key focus areas for the next few months.</p>
             </div>
-            <p>Keep crushing your goals!</p>
-            <p>- The Fitness Team</p>
+            <p style="margin-top:30px; color:#666; font-size:14px;">
+              Questions? Reply to this email or reach out directly:<br>
+              <strong>hello@ramafit.xyz</strong> 
+            </p>
           </div>
         `,
                 attachments: [

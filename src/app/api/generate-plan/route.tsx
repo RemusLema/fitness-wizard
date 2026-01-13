@@ -91,12 +91,7 @@ const pdfStyles = StyleSheet.create({
     marginBottom: 1,
     textTransform: "uppercase",
   },
-  text: {
-    fontSize: 9,
-    lineHeight: 1.4,
-    color: "#334155",
-    marginBottom: 2,
-  },
+
   row: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -601,7 +596,10 @@ CRITICAL FORMATTING INSTRUCTIONS:
                   <em>* Your bonus roadmap will arrive in a separate email shortly! 🎁</em>
                 </p>
                 ` : ''}
-                <p>Good luck,<br>The Fitness Team</p>
+                <p style="margin-top:30px; color:#666; font-size:14px;">
+                  Questions? Reply to this email or reach out directly:<br>
+                  <strong>hello@ramafit.xyz</strong> 
+                </p>
               </div>
             `,
             attachments: [
