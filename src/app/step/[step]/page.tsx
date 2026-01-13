@@ -307,10 +307,6 @@ export default function WizardStep() {
     if (saved) setFormData(JSON.parse(saved));
   }, []);
 
-  if (!mounted) {
-    return null; // or a loading spinner to prevent hydration mismatch
-  }
-
   // Auto-save
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -329,6 +325,10 @@ export default function WizardStep() {
       setBmi(null);
     }
   }, [formData.height, formData.weight]);
+
+  if (!mounted) {
+    return null; // Prevents hydration mismatch, strictly after all hooks
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
