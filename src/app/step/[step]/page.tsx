@@ -414,6 +414,7 @@ export default function WizardStep() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ formData: data }),
+      keepalive: true, // Ensure request survives page close
     }).catch(err => console.error("Bonus trigger failed (background):", err));
   };
 

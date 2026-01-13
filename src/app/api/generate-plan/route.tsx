@@ -153,18 +153,31 @@ const pdfStyles = StyleSheet.create({
     marginBottom: 1,
     paddingLeft: 8,
   },
+  weekContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    gap: 10,
+  },
   dayBox: {
+    width: "48%", // 2-Column Grid
     backgroundColor: "#f0f9ff",
     borderLeftWidth: 3,
     borderLeftColor: "#7c3aed",
     borderRadius: 6,
-    padding: 6,
-    marginBottom: 8,
+    padding: 8,
+    marginBottom: 6,
+  },
+  text: {
+    fontSize: 10, // Increased from 9 for better readability
+    lineHeight: 1.4,
+    color: "#334155",
+    marginBottom: 2,
   },
   progressionSection: {
     marginTop: 10,
     marginBottom: 10,
-    padding: 8,
+    padding: 10,
     backgroundColor: "#f0f4ff",
     borderRadius: 6,
     borderLeftWidth: 4,
@@ -177,8 +190,8 @@ const pdfStyles = StyleSheet.create({
     marginBottom: 6,
   },
   progressionText: {
-    fontSize: 9,
-    lineHeight: 1.4,
+    fontSize: 10,
+    lineHeight: 1.5,
     color: "#1e293b",
   },
 });
@@ -310,61 +323,64 @@ const FitnessPDF = ({ data, plan }: { data: any; plan: any }) => {
                   {weekTitle}
                 </Text>
 
-                {/* ✅ FIXED: Validate days array */}
-                {Array.isArray(week?.days) && week.days.length > 0 ? (
-                  week.days.map((day: any, dIndex: number) => {
-                    // ✅ FIXED: Convert all values to strings to prevent object rendering
-                    const dayTitle = String(day?.dayTitle || `Day ${dIndex + 1}`);
-                    const focus = String(day?.focus || "General Fitness");
-                    const timing = String(day?.timing || "Flexible timing");
-                    const workout = String(day?.workout || "Rest day or active recovery");
-                    const meals = String(day?.meals || "Balanced nutrition throughout the day");
+                {/* 2-Column Grid Layout Container */}
+                <View style={pdfStyles.weekContainer}>
+                  {/* ✅ FIXED: Validate days array */}
+                  {Array.isArray(week?.days) && week.days.length > 0 ? (
+                    week.days.map((day: any, dIndex: number) => {
+                      // ✅ FIXED: Convert all values to strings to prevent object rendering
+                      const dayTitle = String(day?.dayTitle || `Day ${dIndex + 1}`);
+                      const focus = String(day?.focus || "General Fitness");
+                      const timing = String(day?.timing || "Flexible timing");
+                      const workout = String(day?.workout || "Rest day or active recovery");
+                      const meals = String(day?.meals || "Balanced nutrition throughout the day");
 
-                    // Parse workouts and meals for better readability
-                    const workoutBullets = parseWorkoutIntoBullets(workout);
-                    const mealSections = parseMealsIntoSections(meals);
+                      // Parse workouts and meals for better readability
+                      const workoutBullets = parseWorkoutIntoBullets(workout);
+                      const mealSections = parseMealsIntoSections(meals);
 
-                    return (
-                      <View key={dIndex} style={pdfStyles.dayBox} wrap={false}>
-                        <Text style={pdfStyles.dayHeader}>
-                          {dayTitle} — {focus}
-                        </Text>
+                      return (
+                        <View key={dIndex} style={pdfStyles.dayBox} wrap={false}>
+                          <Text style={pdfStyles.dayHeader}>
+                            {dayTitle} — {focus}
+                          </Text>
 
-                        <Text style={pdfStyles.subHeader}>Timing</Text>
-                        <Text style={pdfStyles.text}>{timing}</Text>
+                          <Text style={pdfStyles.subHeader}>Timing</Text>
+                          <Text style={pdfStyles.text}>{timing}</Text>
 
-                        <Text style={pdfStyles.subHeader}>WORKOUT</Text>
-                        {workoutBullets.length > 0 ? (
-                          workoutBullets.map((exercise, idx) => (
-                            <Text key={idx} style={pdfStyles.bulletPoint}>
-                              • {exercise}
-                            </Text>
-                          ))
-                        ) : (
-                          <Text style={pdfStyles.text}>{workout}</Text>
-                        )}
+                          <Text style={pdfStyles.subHeader}>WORKOUT</Text>
+                          {workoutBullets.length > 0 ? (
+                            workoutBullets.map((exercise, idx) => (
+                              <Text key={idx} style={pdfStyles.bulletPoint}>
+                                • {exercise}
+                              </Text>
+                            ))
+                          ) : (
+                            <Text style={pdfStyles.text}>{workout}</Text>
+                          )}
 
-                        <Text style={pdfStyles.subHeader}>NUTRITION</Text>
-                        {Object.keys(mealSections).length > 0 ? (
-                          Object.entries(mealSections).map(([mealType, items], idx) => (
-                            <View key={idx} style={pdfStyles.mealSection}>
-                              <Text style={pdfStyles.mealType}>{mealType}:</Text>
-                              {items.map((item, itemIdx) => (
-                                <Text key={itemIdx} style={pdfStyles.mealItem}>
-                                  {item}
-                                </Text>
-                              ))}
-                            </View>
-                          ))
-                        ) : (
-                          <Text style={pdfStyles.text}>{meals}</Text>
-                        )}
-                      </View>
-                    );
-                  })
-                ) : (
-                  <Text style={pdfStyles.text}>No days scheduled for this week.</Text>
-                )}
+                          <Text style={pdfStyles.subHeader}>NUTRITION</Text>
+                          {Object.keys(mealSections).length > 0 ? (
+                            Object.entries(mealSections).map(([mealType, items], idx) => (
+                              <View key={idx} style={pdfStyles.mealSection}>
+                                <Text style={pdfStyles.mealType}>{mealType}:</Text>
+                                {items.map((item, itemIdx) => (
+                                  <Text key={itemIdx} style={pdfStyles.mealItem}>
+                                    {item}
+                                  </Text>
+                                ))}
+                              </View>
+                            ))
+                          ) : (
+                            <Text style={pdfStyles.text}>{meals}</Text>
+                          )}
+                        </View>
+                      );
+                    })
+                  ) : (
+                    <Text style={pdfStyles.text}>No days scheduled for this week.</Text>
+                  )}
+                </View>
               </View>
             );
           })
@@ -571,7 +587,7 @@ CRITICAL FORMATTING INSTRUCTIONS:
               formData.timeline === "6_months" ? "6-Month" : "Custom";
 
           await resend.emails.send({
-            from: "Fitness Wizard <onboarding@resend.dev>",
+            from: "Fitness Wizard <hello@ramafit.xyz>",
             to: formData.email,
             subject: `Your Personalized ${durationText} Fitness Plan 🚀`,
             html: `

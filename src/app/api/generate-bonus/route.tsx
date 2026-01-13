@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
             console.log("📧 Sending bonus email to:", formData.email);
 
             await resend.emails.send({
-                from: "Fitness Wizard <onboarding@resend.dev>",
+                from: "Fitness Wizard <hello@ramafit.xyz>",
                 to: formData.email,
                 subject: `Your Bonus ${durationText} Roadmap! 🎁`,
                 html: `
