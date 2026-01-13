@@ -293,18 +293,23 @@ export default function WizardStep() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [want, setWant] = useState<WantOptions>({ pdf: true, email: true });
+  const [mounted, setMounted] = useState(false);
 
-  // Dark mode preference
+  // Handle hydration mismatch
   useEffect(() => {
+    setMounted(true);
+    // Dark mode preference
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     setDarkMode(prefersDark);
-  }, []);
 
-  // Load saved data
-  useEffect(() => {
+    // Load saved data
     const saved = localStorage.getItem("fitnessWizard2025");
     if (saved) setFormData(JSON.parse(saved));
   }, []);
+
+  if (!mounted) {
+    return null; // or a loading spinner to prevent hydration mismatch
+  }
 
   // Auto-save
   useEffect(() => {
