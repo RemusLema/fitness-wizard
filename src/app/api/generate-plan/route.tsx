@@ -554,38 +554,23 @@ CRITICAL FORMATTING INSTRUCTIONS:
     console.log("📄 Generating PDF...");
 
     // Generate PDF with error boundary
-    let pdfBuffer: Buffer;
-    try {
-      const pdfDoc = <FitnessPDF data={formData} plan={aiPlan} />;
-      const pdfBlob = await pdf(pdfDoc).toBlob();
-      pdfBuffer = Buffer.from(await pdfBlob.arrayBuffer());
-      console.log("✅ PDF generated successfully");
-    } catch (pdfError) {
-      console.error("❌ PDF generation failed:", pdfError);
-      throw new Error("Failed to generate PDF document");
-    }
+    // Generate Main PDF (Isolated function to free memory)
+    const pdfBuffer = await generateMainPDF(formData, aiPlan);
+    console.log("✅ Main PDF generated, size:", pdfBuffer.length);
 
-    // Generate Bonus PDF for 12-week and 6-month timelines
+    // Generate Bonus PDF (Conditionally & Isolated)
     let bonusBuffer: Buffer | null = null;
     let bonusFilename = "";
 
     if (formData.timeline === "3_months" || formData.timeline === "6_months") {
       try {
         console.log("📄 Generating bonus PDF for timeline:", formData.timeline);
-        const bonusPdfDoc = (
-          <BonusPDF
-            name={formData.name}
-            goal={formData.goal?.replace(/_/g, " ") || "fitness"}
-            level={formData.fitnessLevel || "intermediate"}
-            timeline={formData.timeline}
-          />
-        );
-        const bonusPdfBlob = await pdf(bonusPdfDoc).toBlob();
-        bonusBuffer = Buffer.from(await bonusPdfBlob.arrayBuffer());
-        bonusFilename =
-          formData.timeline === "3_months"
-            ? "Bonus_3_Month_Roadmap.pdf"
-            : "Bonus_6_Month_Blueprint.pdf";
+
+        // Generate bonus PDF in isolated scope
+        const result = await generateBonusPDF(formData);
+        bonusBuffer = result.buffer;
+        bonusFilename = result.filename;
+
         console.log("✅ Bonus PDF generated successfully:", bonusFilename);
       } catch (bonusError) {
         console.error("❌ Bonus PDF generation failed:", bonusError);
@@ -718,4 +703,35 @@ ${plainTextPlan}
       { status: 500 }
     );
   }
+}
+
+// --- Helper Functions for Memory Management ---
+
+async function generateMainPDF(formData: any, planData: any): Promise<Buffer> {
+  // Create document in local scope
+  const doc = <FitnessPDF data={formData} plan={planData} />;
+  const blob = await pdf(doc).toBlob();
+  return Buffer.from(await blob.arrayBuffer());
+}
+
+async function generateBonusPDF(formData: any): Promise<{ buffer: Buffer; filename: string }> {
+  // Create document in local scope
+  const doc = (
+    <BonusPDF
+      name={formData.name}
+      goal={formData.goal?.replace(/_/g, " ") || "fitness"}
+      level={formData.fitnessLevel || "intermediate"}
+      timeline={formData.timeline as "3_months" | "6_months"}
+    />
+  );
+  const blob = await pdf(doc).toBlob();
+
+  const filename = formData.timeline === "3_months"
+    ? "Bonus_3_Month_Roadmap.pdf"
+    : "Bonus_6_Month_Blueprint.pdf";
+
+  return {
+    buffer: Buffer.from(await blob.arrayBuffer()),
+    filename
+  };
 }
