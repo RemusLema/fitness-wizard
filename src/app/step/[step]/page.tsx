@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { User, Target, Salad, Dumbbell, Clock } from 'lucide-react';
 
@@ -463,6 +464,15 @@ export default function WizardStep() {
                 )}
               </div>
             </form>
+
+            <footer className="mt-12 text-center">
+              <Link
+                href="/privacy"
+                className="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+              >
+                Privacy Policy
+              </Link>
+            </footer>
           </div>
         </div>
       </div>
