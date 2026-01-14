@@ -1,10 +1,10 @@
-// src/app/step/[step]/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { User, Target, Salad, Dumbbell, Clock } from 'lucide-react';
+import SamplePlanPreview from '@/components/SamplePlanPreview';
 
 type FormData = {
   name: string;
@@ -24,7 +24,6 @@ type FormData = {
   pastInjuries: string;
   equipment: string[];
   targetWeightLoss: string;
-  // Added missing fields to match usage
   [key: string]: any;
 };
 
@@ -98,6 +97,11 @@ const sections: Section[] = [
             </div>
           </div>
         )}
+
+        {/* TRUST BUILDER: Sample Plan Preview on Step 1 */}
+        <div className="mt-12 pt-8 border-t border-gray-100 dark:border-gray-800">
+          <SamplePlanPreview />
+        </div>
       </div>
     )
   },
