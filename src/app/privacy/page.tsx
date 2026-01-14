@@ -1,17 +1,21 @@
-import Link from "next/link";
+"use client";
+
+import { useRouter } from "next/navigation";
 
 export default function PrivacyPolicy() {
+    const router = useRouter();
+
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors py-12 px-6">
             <div className="max-w-3xl mx-auto bg-white dark:bg-gray-900 rounded-3xl shadow-xl p-8 md:p-12">
                 {/* Navigation */}
                 <div className="mb-8">
-                    <Link
-                        href="/"
+                    <button
+                        onClick={() => router.back()}
                         className="inline-flex items-center text-sm font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
                     >
-                        ← Back to Home
-                    </Link>
+                        ✕ Close
+                    </button>
                 </div>
 
                 {/* Content */}
