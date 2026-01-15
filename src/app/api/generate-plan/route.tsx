@@ -191,6 +191,179 @@ const pdfStyles = StyleSheet.create({
   },
 });
 
+// ✅ NEW: Mobile-Optimized PDF Styles
+const mobilePdfStyles = StyleSheet.create({
+  page: {
+    padding: 15,
+    paddingBottom: 60,
+    fontSize: 9,
+    fontFamily: "Helvetica",
+    backgroundColor: "#ffffff"
+  },
+  header: {
+    backgroundColor: "#7c3aed",
+    padding: 10,
+    marginBottom: 10,
+    borderRadius: 8,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#ffffff",
+    marginBottom: 4,
+  },
+  headerSubtitle: {
+    fontSize: 10,
+    color: "#e9d5ff",
+  },
+  section: {
+    marginBottom: 6,
+    padding: 6,
+    backgroundColor: "#f8fafc",
+    borderRadius: 6,
+    borderLeftWidth: 3,
+    borderLeftColor: "#7c3aed",
+  },
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: "bold",
+    color: "#4c1d95",
+    marginBottom: 4,
+    textTransform: "uppercase",
+  },
+  weekTitle: {
+    fontSize: 12,
+    fontWeight: "bold",
+    color: "#be185d",
+    marginTop: 8,
+    marginBottom: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: "#fbcfe8",
+    paddingBottom: 2,
+  },
+  dayContainer: {
+    marginBottom: 4,
+    padding: 4,
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    borderRadius: 4,
+  },
+  dayHeader: {
+    fontSize: 10,
+    fontWeight: "bold",
+    color: "#1e293b",
+    marginBottom: 3,
+    backgroundColor: "#f1f5f9",
+    padding: 3,
+    borderRadius: 3,
+  },
+  subHeader: {
+    fontSize: 8,
+    fontWeight: "bold",
+    color: "#64748b",
+    marginTop: 2,
+    marginBottom: 1,
+    textTransform: "uppercase",
+  },
+
+  row: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  field: {
+    width: "48%",
+    marginBottom: 4,
+  },
+  label: {
+    fontSize: 7,
+    color: "#64748b",
+    marginBottom: 1,
+    textTransform: "uppercase",
+  },
+  value: {
+    fontSize: 9,
+    color: "#1e293b",
+    fontWeight: "bold",
+  },
+  footer: {
+    position: "absolute",
+    bottom: 15,
+    left: 15,
+    right: 15,
+    textAlign: "center",
+    color: "#94a3b8",
+    fontSize: 7,
+    borderTopWidth: 1,
+    borderTopColor: "#e2e8f0",
+    paddingTop: 8,
+  },
+  bulletPoint: {
+    fontSize: 7,
+    lineHeight: 1.4,
+    color: "#334155",
+    marginBottom: 1,
+    paddingLeft: 6,
+  },
+  mealSection: {
+    marginTop: 2,
+    marginBottom: 2,
+  },
+  mealType: {
+    fontSize: 8,
+    fontWeight: "bold",
+    color: "#7c3aed",
+    marginBottom: 1,
+  },
+  mealItem: {
+    fontSize: 7,
+    lineHeight: 1.3,
+    color: "#475569",
+    marginBottom: 1,
+    paddingLeft: 6,
+  },
+  weekContainer: {
+    flexDirection: "column",
+    gap: 6,
+  },
+  dayBox: {
+    width: "100%",
+    backgroundColor: "#f0f9ff",
+    borderLeftWidth: 3,
+    borderLeftColor: "#7c3aed",
+    borderRadius: 4,
+    padding: 6,
+    marginBottom: 4,
+  },
+  text: {
+    fontSize: 9, // Increased from 9 for better readability
+    lineHeight: 1.4,
+    color: "#334155",
+    marginBottom: 2,
+  },
+  progressionSection: {
+    marginTop: 8,
+    marginBottom: 8,
+    padding: 8,
+    backgroundColor: "#f0f4ff",
+    borderRadius: 6,
+    borderLeftWidth: 4,
+    borderLeftColor: "#7c3aed",
+  },
+  progressionTitle: {
+    fontSize: 11,
+    fontWeight: "bold",
+    color: "#7c3aed",
+    marginBottom: 4,
+  },
+  progressionText: {
+    fontSize: 9,
+    lineHeight: 1.4,
+    color: "#1e293b",
+  },
+});
+
 // Helper: Normalize PDF text (fix common artifacts)
 function normalizeText(text: string): string {
   if (!text) return '';
@@ -254,7 +427,9 @@ function parseMealsIntoSections(meals: string): { [key: string]: string[] } {
   return sections;
 }
 // ✅ FIXED: Added proper null checks and type safety
-const FitnessPDF = ({ data, plan }: { data: any; plan: any }) => {
+const FitnessPDF = ({ data, plan, isMobile = false }: { data: any; plan: any; isMobile?: boolean }) => {
+  const styles = isMobile ? mobilePdfStyles : pdfStyles;
+
   // Safety checks
   const safeName = data?.name || "Athlete";
   const safeTitle = plan?.title || "Fitness Plan";
@@ -268,11 +443,11 @@ const FitnessPDF = ({ data, plan }: { data: any; plan: any }) => {
 
   return (
     <Document>
-      <Page size="A4" style={pdfStyles.page}>
+      <Page size="A4" style={styles.page}>
         {/* Header */}
-        <View style={pdfStyles.header}>
-          <Text style={pdfStyles.headerTitle}>Fitness Wizard Plan</Text>
-          <Text style={pdfStyles.headerSubtitle}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Fitness Wizard Plan</Text>
+          <Text style={styles.headerSubtitle}>
             Customized for {safeName} • {data.timeline === "1_month"
               ? "Your Complete 4-Week Plan"
               : `Cycle 1 of Your ${safeTimeline} Journey`}
@@ -280,31 +455,31 @@ const FitnessPDF = ({ data, plan }: { data: any; plan: any }) => {
         </View>
 
         {/* Profile Section */}
-        <View style={pdfStyles.section}>
-          <Text style={pdfStyles.sectionTitle}>Athlete Profile</Text>
-          <View style={pdfStyles.row}>
-            <View style={pdfStyles.field}>
-              <Text style={pdfStyles.label}>Goal</Text>
-              <Text style={pdfStyles.value}>{safeGoal}</Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Athlete Profile</Text>
+          <View style={styles.row}>
+            <View style={styles.field}>
+              <Text style={styles.label}>Goal</Text>
+              <Text style={styles.value}>{safeGoal}</Text>
             </View>
-            <View style={pdfStyles.field}>
-              <Text style={pdfStyles.label}>Fitness Level</Text>
-              <Text style={pdfStyles.value}>{safeFitnessLevel}</Text>
+            <View style={styles.field}>
+              <Text style={styles.label}>Fitness Level</Text>
+              <Text style={styles.value}>{safeFitnessLevel}</Text>
             </View>
-            <View style={pdfStyles.field}>
-              <Text style={pdfStyles.label}>Timeline</Text>
-              <Text style={pdfStyles.value}>{safeTimeline}</Text>
+            <View style={styles.field}>
+              <Text style={styles.label}>Timeline</Text>
+              <Text style={styles.value}>{safeTimeline}</Text>
             </View>
-            <View style={pdfStyles.field}>
-              <Text style={pdfStyles.label}>Equipment</Text>
-              <Text style={pdfStyles.value}>{safeEquipment}</Text>
+            <View style={styles.field}>
+              <Text style={styles.label}>Equipment</Text>
+              <Text style={styles.value}>{safeEquipment}</Text>
             </View>
           </View>
         </View>
 
         {/* Introduction */}
         <View style={{ marginBottom: 20 }}>
-          <Text style={pdfStyles.text}>{safeIntro}</Text>
+          <Text style={styles.text}>{safeIntro}</Text>
         </View>
 
         {/* ✅ FIXED: Added proper null checks and array validation */}
@@ -314,12 +489,12 @@ const FitnessPDF = ({ data, plan }: { data: any; plan: any }) => {
 
             return (
               <View key={wIndex} break={wIndex > 0} style={{ flexDirection: "column" }}>
-                <Text style={pdfStyles.weekTitle}>
+                <Text style={styles.weekTitle}>
                   {weekTitle}
                 </Text>
 
                 {/* 2-Column Grid Layout Container */}
-                <View style={pdfStyles.weekContainer}>
+                <View style={styles.weekContainer}>
                   {/* ✅ FIXED: Validate days array */}
                   {Array.isArray(week?.days) && week.days.length > 0 ? (
                     week.days.map((day: any, dIndex: number) => {
@@ -335,53 +510,53 @@ const FitnessPDF = ({ data, plan }: { data: any; plan: any }) => {
                       const mealSections = parseMealsIntoSections(meals);
 
                       return (
-                        <View key={dIndex} style={pdfStyles.dayBox} wrap={false}>
-                          <Text style={pdfStyles.dayHeader}>
+                        <View key={dIndex} style={styles.dayBox} wrap={false}>
+                          <Text style={styles.dayHeader}>
                             {dayTitle} — {focus}
                           </Text>
 
-                          <Text style={pdfStyles.subHeader}>Timing</Text>
-                          <Text style={pdfStyles.text}>{timing}</Text>
+                          <Text style={styles.subHeader}>Timing</Text>
+                          <Text style={styles.text}>{timing}</Text>
 
-                          <Text style={pdfStyles.subHeader}>WORKOUT</Text>
+                          <Text style={styles.subHeader}>WORKOUT</Text>
                           {workoutBullets.length > 0 ? (
                             workoutBullets.map((exercise, idx) => (
-                              <Text key={idx} style={pdfStyles.bulletPoint}>
+                              <Text key={idx} style={styles.bulletPoint}>
                                 • {exercise}
                               </Text>
                             ))
                           ) : (
-                            <Text style={pdfStyles.text}>{workout}</Text>
+                            <Text style={styles.text}>{workout}</Text>
                           )}
 
-                          <Text style={pdfStyles.subHeader}>NUTRITION</Text>
+                          <Text style={styles.subHeader}>NUTRITION</Text>
                           {Object.keys(mealSections).length > 0 ? (
                             Object.entries(mealSections).map(([mealType, items], idx) => (
-                              <View key={idx} style={pdfStyles.mealSection}>
-                                <Text style={pdfStyles.mealType}>{mealType}:</Text>
+                              <View key={idx} style={styles.mealSection}>
+                                <Text style={styles.mealType}>{mealType}:</Text>
                                 {items.map((item, itemIdx) => (
-                                  <Text key={itemIdx} style={pdfStyles.mealItem}>
+                                  <Text key={itemIdx} style={styles.mealItem}>
                                     {item}
                                   </Text>
                                 ))}
                               </View>
                             ))
                           ) : (
-                            <Text style={pdfStyles.text}>{meals}</Text>
+                            <Text style={styles.text}>{meals}</Text>
                           )}
                         </View>
                       );
                     })
                   ) : (
-                    <Text style={pdfStyles.text}>No days scheduled for this week.</Text>
+                    <Text style={styles.text}>No days scheduled for this week.</Text>
                   )}
                 </View>
               </View>
             );
           })
         ) : (
-          <View style={pdfStyles.section}>
-            <Text style={pdfStyles.text}>
+          <View style={styles.section}>
+            <Text style={styles.text}>
               Your personalized plan is being prepared. Please try generating again.
             </Text>
           </View>
@@ -389,18 +564,18 @@ const FitnessPDF = ({ data, plan }: { data: any; plan: any }) => {
 
         {/* Progression Notes for Multi-Month Plans */}
         {plan.progressionNotes && data.timeline !== "1_month" && (
-          <View style={pdfStyles.progressionSection}>
-            <Text style={pdfStyles.progressionTitle}>
+          <View style={styles.progressionSection}>
+            <Text style={styles.progressionTitle}>
               Progression Plan for Your {safeTimeline} Journey
             </Text>
-            <Text style={pdfStyles.progressionText}>
+            <Text style={styles.progressionText}>
               {plan.progressionNotes}
             </Text>
           </View>
         )}
 
         {/* Footer */}
-        <Text style={pdfStyles.footer} fixed>
+        <Text style={styles.footer} fixed>
           Generated by AI Fitness Wizard • {new Date().toLocaleString()} • v2.0 • Stay Consistent!
         </Text>
       </Page>
@@ -562,14 +737,17 @@ CRITICAL FORMATTING INSTRUCTIONS:
       aiPlan.weeks = [];
     }
 
-    console.log("📄 Generating PDF...");
+    console.log("📄 Generating PDFs...");
 
-    // Generate PDF with error boundary
-    // 4. Generate Main PDF (Isolated function to free memory)
-    const pdfBuffer = await generateMainPDF(formData, aiPlan);
-    console.log("✅ Main PDF generated, size:", pdfBuffer.length);
+    // ✅ NEW: Generate both desktop and mobile PDFs
+    const desktopPdfBuffer = await generatePDF(formData, aiPlan, false);
+    console.log("✅ Desktop PDF generated, size:", desktopPdfBuffer.length);
+
+    const mobilePdfBuffer = await generatePDF(formData, aiPlan, true);
+    console.log("✅ Mobile PDF generated, size:", mobilePdfBuffer.length);
 
     // 5. Send Email (Main Plan Only)
+    let emailError = null;
     if (want?.email && formData.email) {
       if (!process.env.RESEND_API_KEY) {
         console.warn("⚠️ No RESEND_API_KEY found, skipping email.");
@@ -605,28 +783,46 @@ CRITICAL FORMATTING INSTRUCTIONS:
             attachments: [
               {
                 filename: "Your_4_Week_Plan.pdf",
-                content: pdfBuffer,
+                content: desktopPdfBuffer,
               },
             ],
           });
           console.log("✅ Email sent successfully");
-        } catch (emailError) {
+        } catch (emailError_) {
+          emailError = emailError_;
           console.error("❌ Email failed:", emailError);
-          // Don't fail request if email fails, user can download PDF
         }
       }
     }
 
-    // Determine bonus eligibility for frontend trigger
+    // Determine bonus eligibility
     const isBonusEligible = formData.timeline === "3_months" || formData.timeline === "6_months";
+
+    // Generate bonus PDF if eligible (fire and forget)
+    let bonusGenerationStatus = "not_triggered";
+    if (isBonusEligible) {
+      console.log("🎁 Triggering bonus PDF generation...");
+      fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/generate-bonus`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ formData: { ...formData, want } })
+      }).then(() => {
+        console.log("✅ Bonus PDF generation initiated");
+        bonusGenerationStatus = "initiated";
+      }).catch((bonusError) => {
+        console.error("❌ Bonus API call error:", bonusError);
+        bonusGenerationStatus = "failed";
+      });
+    }
 
     return NextResponse.json({
       success: true,
       plan: aiPlan,
-      // We pass the PDF as a base64 string for direct download in browser if needed
-      pdfUrl: `data:application/pdf;base64,${pdfBuffer.toString("base64")}`,
-      emailError: null,
-      isBonusEligible
+      emailError: emailError,
+      isBonusEligible,
+      bonusStatus: bonusGenerationStatus,
+      desktopPdf: Buffer.from(desktopPdfBuffer).toString("base64"),
+      mobilePdf: Buffer.from(mobilePdfBuffer).toString("base64")
     });
 
   } catch (error: any) {
@@ -643,11 +839,12 @@ CRITICAL FORMATTING INSTRUCTIONS:
 
 // --- Helper Functions for Memory Management ---
 
-async function generateMainPDF(formData: any, planData: any): Promise<Buffer> {
-  // Create document in local scope
-  const doc = <FitnessPDF data={formData} plan={planData} />;
+async function generateMainPDF(formData: any, planData: any, isMobile: boolean = false): Promise<Buffer> {
+  const doc = <FitnessPDF data={formData} plan={planData} isMobile={isMobile} />;
   const blob = await pdf(doc).toBlob();
   return Buffer.from(await blob.arrayBuffer());
 }
 
-// Removed inline generateBonusPDF since it's now a separate API route
+async function generatePDF(formData: any, planData: any, isMobile: boolean): Promise<Buffer> {
+  return generateMainPDF(formData, planData, isMobile);
+}
