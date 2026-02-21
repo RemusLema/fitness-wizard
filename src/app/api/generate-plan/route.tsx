@@ -86,10 +86,37 @@ const pdfStyles = StyleSheet.create({
   subHeader: {
     fontSize: 9,
     fontWeight: "bold",
-    color: "#64748b",
-    marginTop: 3,
-    marginBottom: 1,
-    textTransform: "uppercase",
+    color: "#1e293b",
+    marginTop: 4,
+    marginBottom: 2,
+  },
+  timingHeader: {
+    fontSize: 9,
+    fontWeight: "bold",
+    color: "#ea580c",
+    marginTop: 4,
+    marginBottom: 2,
+  },
+  workoutHeader: {
+    fontSize: 9,
+    fontWeight: "bold",
+    color: "#7c3aed",
+    marginTop: 4,
+    marginBottom: 2,
+  },
+  nutritionHeader: {
+    fontSize: 9,
+    fontWeight: "bold",
+    color: "#16a34a",
+    marginTop: 4,
+    marginBottom: 2,
+  },
+  checkboxItem: {
+    fontSize: 8,
+    lineHeight: 1.5,
+    color: "#334155",
+    marginBottom: 2,
+    paddingLeft: 4,
   },
 
   row: {
@@ -118,10 +145,8 @@ const pdfStyles = StyleSheet.create({
     left: 30,
     right: 30,
     textAlign: "center",
-    color: "#94a3b8",
+    color: "#64748b",
     fontSize: 8,
-    borderTopWidth: 1,
-    borderTopColor: "#e2e8f0",
     paddingTop: 10,
   },
   bulletPoint: {
@@ -138,7 +163,7 @@ const pdfStyles = StyleSheet.create({
   mealType: {
     fontSize: 9,
     fontWeight: "bold",
-    color: "#7c3aed",
+    color: "#16a34a",
     marginBottom: 1,
   },
   mealItem: {
@@ -261,10 +286,37 @@ const mobilePdfStyles = StyleSheet.create({
   subHeader: {
     fontSize: 8,
     fontWeight: "bold",
-    color: "#64748b",
-    marginTop: 2,
-    marginBottom: 1,
-    textTransform: "uppercase",
+    color: "#1e293b",
+    marginTop: 3,
+    marginBottom: 2,
+  },
+  timingHeader: {
+    fontSize: 8,
+    fontWeight: "bold",
+    color: "#ea580c",
+    marginTop: 3,
+    marginBottom: 2,
+  },
+  workoutHeader: {
+    fontSize: 8,
+    fontWeight: "bold",
+    color: "#7c3aed",
+    marginTop: 3,
+    marginBottom: 2,
+  },
+  nutritionHeader: {
+    fontSize: 8,
+    fontWeight: "bold",
+    color: "#16a34a",
+    marginTop: 3,
+    marginBottom: 2,
+  },
+  checkboxItem: {
+    fontSize: 7,
+    lineHeight: 1.4,
+    color: "#334155",
+    marginBottom: 2,
+    paddingLeft: 4,
   },
 
   row: {
@@ -293,10 +345,8 @@ const mobilePdfStyles = StyleSheet.create({
     left: 15,
     right: 15,
     textAlign: "center",
-    color: "#94a3b8",
+    color: "#64748b",
     fontSize: 7,
-    borderTopWidth: 1,
-    borderTopColor: "#e2e8f0",
     paddingTop: 8,
   },
   bulletPoint: {
@@ -313,7 +363,7 @@ const mobilePdfStyles = StyleSheet.create({
   mealType: {
     fontSize: 8,
     fontWeight: "bold",
-    color: "#7c3aed",
+    color: "#16a34a",
     marginBottom: 1,
   },
   mealItem: {
@@ -515,34 +565,38 @@ const FitnessPDF = ({ data, plan, isMobile = false }: { data: any; plan: any; is
                             {dayTitle} — {focus}
                           </Text>
 
-                          <Text style={styles.subHeader}>Timing</Text>
-                          <Text style={styles.text}>{timing}</Text>
+                          <Text style={styles.timingHeader}>TIMING</Text>
+                          {timing.split(/[,;]/).map((t, idx) => (
+                            <Text key={idx} style={styles.checkboxItem}>
+                              [ ] {t.trim()}
+                            </Text>
+                          ))}
 
-                          <Text style={styles.subHeader}>WORKOUT</Text>
+                          <Text style={styles.workoutHeader}>WORKOUT</Text>
                           {workoutBullets.length > 0 ? (
                             workoutBullets.map((exercise, idx) => (
-                              <Text key={idx} style={styles.bulletPoint}>
-                                • {exercise}
+                              <Text key={idx} style={styles.checkboxItem}>
+                                [ ] {exercise}
                               </Text>
                             ))
                           ) : (
-                            <Text style={styles.text}>{workout}</Text>
+                            <Text style={styles.checkboxItem}>[ ] {workout}</Text>
                           )}
 
-                          <Text style={styles.subHeader}>NUTRITION</Text>
+                          <Text style={styles.nutritionHeader}>NUTRITION</Text>
                           {Object.keys(mealSections).length > 0 ? (
                             Object.entries(mealSections).map(([mealType, items], idx) => (
                               <View key={idx} style={styles.mealSection}>
-                                <Text style={styles.mealType}>{mealType}:</Text>
+                                <Text style={styles.mealType}>{mealType.toUpperCase()}:</Text>
                                 {items.map((item, itemIdx) => (
-                                  <Text key={itemIdx} style={styles.mealItem}>
-                                    {item}
+                                  <Text key={itemIdx} style={styles.checkboxItem}>
+                                    [ ] {item}
                                   </Text>
                                 ))}
                               </View>
                             ))
                           ) : (
-                            <Text style={styles.text}>{meals}</Text>
+                            <Text style={styles.checkboxItem}>[ ] {meals}</Text>
                           )}
                         </View>
                       );
@@ -576,7 +630,7 @@ const FitnessPDF = ({ data, plan, isMobile = false }: { data: any; plan: any; is
 
         {/* Footer */}
         <Text style={styles.footer} fixed>
-          Generated by AI Fitness Wizard • {new Date().toLocaleString()} • v2.0 • Stay Consistent!
+          ramafit.xyz
         </Text>
       </Page>
     </Document>
