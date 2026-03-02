@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { User, Target, Salad, Dumbbell, Clock } from 'lucide-react';
 import SamplePlanPreview from '@/components/SamplePlanPreview';
+import { Turnstile } from '@marsidev/react-turnstile';
 
 type FormData = {
   name: string;
@@ -215,11 +216,12 @@ const sections: Section[] = [
     )
   },
   {
-    title: "Equipment & Schedule",
-    description: "Final step — let’s build your plan!",
+    title: "Choose Your Plan",
+    description: "Select the option that fits your goals",
     icon: <Clock className="w-12 h-12 text-yellow-500" />,
     fields: (data, onChange, _errors, _bmi, want, setWant, result, formData) => (
       <div className="space-y-10">
+        {/* Equipment */}
         <div>
           <label className="block text-lg font-bold mb-4">Available Equipment *</label>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -232,48 +234,102 @@ const sections: Section[] = [
           </div>
         </div>
 
+        {/* Success state — shown after free sample generation */}
         {result?.success && (
           <div className="p-8 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-2xl border-2 border-emerald-300 dark:border-emerald-700 text-center">
-            <h3 className="text-2xl font-bold mb-6">Your AI Plan is Ready!</h3>
-
-            {result.pdfUrl && want.pdf && (
-              <div className="mb-8">
-                <a
-                  href={result.pdfUrl}
-                  download={`Fitness_Plan_${formData.name.replace(" ", "_")}.pdf`}
-                  className="inline-block px-10 py-5 bg-emerald-600 hover:bg-emerald-700 text-white text-xl font-bold rounded-2xl shadow-lg transition transform hover:scale-105"
-                >
-                  Download Your PDF Now
-                </a>
-              </div>
+            <h3 className="text-2xl font-bold mb-4">🎉 Your Sample Plan is Ready!</h3>
+            {result.pdfUrl && (
+              <a href={result.pdfUrl} download className="inline-block px-10 py-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xl font-bold rounded-2xl shadow transition mb-6">
+                ↓ Download Your Week 1 Sample
+              </a>
             )}
-
-            {result.plan && (
-              <div className="mt-8 p-6 bg-white dark:bg-gray-800 rounded-xl text-left max-h-96 overflow-y-auto font-mono text-sm">
-                <pre className="whitespace-pre-wrap">{result.plan}</pre>
-              </div>
-            )}
-
-            <div className="mt-8 space-y-4 text-left">
-              <label className="flex items-center gap-4 text-lg">
-                <input type="checkbox" checked={want.pdf} disabled className="w-6 h-6 text-emerald-600 rounded" />
-                <span className="text-emerald-600 font-bold">PDF Generated ✓</span>
-              </label>
-              <label className="flex items-center gap-4 text-lg">
-                <input type="checkbox" checked={want.email} disabled className="w-6 h-6 text-emerald-600 rounded" />
-                {result.emailError ? (
-                  <span className="text-amber-600 font-bold flex items-center gap-2">
-                    ⚠️ {result.emailError}
-                  </span>
-                ) : (
-                  <span className="text-emerald-600 font-bold">
-                    Email sent to {formData.email} ✓
-                  </span>
-                )}
-              </label>
+            <div className="mt-4 p-4 bg-purple-50 dark:bg-purple-900/30 rounded-xl border border-purple-200 dark:border-purple-700">
+              <p className="text-sm font-semibold text-purple-700 dark:text-purple-300">
+                Want Weeks 2–4 + macros, trainer notes & email delivery? Upgrade below. 👇
+              </p>
             </div>
           </div>
         )}
+
+        {/* Tier cards */}
+        <div>
+          <h3 className="text-2xl font-bold text-center mb-2">Choose Your Plan</h3>
+          <p className="text-center text-gray-500 dark:text-gray-400 text-sm mb-8">
+            All plans are AI-generated specifically for your profile
+          </p>
+          <div className="grid md:grid-cols-2 gap-5">
+
+            {/* Free Sample */}
+            <div className="relative border-2 border-gray-200 dark:border-gray-700 rounded-2xl p-6 flex flex-col gap-4 hover:border-purple-300 transition">
+              <div>
+                <span className="text-xs font-bold uppercase text-gray-400 tracking-widest">Free</span>
+                <h4 className="text-xl font-bold mt-1">1-Week Sample</h4>
+                <p className="text-3xl font-black mt-2">$0</p>
+              </div>
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300 flex-1">
+                <li className="flex gap-2">✓ Week 1 of your plan (7 days)</li>
+                <li className="flex gap-2">✓ Tailored to your goal & equipment</li>
+                <li className="flex gap-2">✓ PDF download, instant</li>
+                <li className="flex gap-2 text-gray-400">✗ No email delivery</li>
+                <li className="flex gap-2 text-gray-400">✗ Weeks 2–4 locked</li>
+                <li className="flex gap-2 text-gray-400">✗ No macros or trainer notes</li>
+              </ul>
+              <p className="text-xs text-gray-400 italic">One free sample per person</p>
+            </div>
+
+            {/* Starter */}
+            <div className="relative border-2 border-purple-500 rounded-2xl p-6 flex flex-col gap-4 shadow-lg shadow-purple-500/10">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-bold px-4 py-1 rounded-full">MOST POPULAR</span>
+              </div>
+              <div>
+                <span className="text-xs font-bold uppercase text-purple-400 tracking-widest">Starter</span>
+                <h4 className="text-xl font-bold mt-1">4-Week Full Plan</h4>
+                <p className="text-3xl font-black mt-2">$4.99 <span className="text-sm font-normal text-gray-400">one-time</span></p>
+              </div>
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300 flex-1">
+                <li className="flex gap-2">✓ Complete 4-week plan (28 days)</li>
+                <li className="flex gap-2">✓ Daily workouts with sets & reps</li>
+                <li className="flex gap-2">✓ Daily meal plans with macros</li>
+                <li className="flex gap-2">✓ Trainer coaching notes</li>
+                <li className="flex gap-2">✓ PDF delivered to your email</li>
+              </ul>
+            </div>
+
+            {/* Transform */}
+            <div className="relative border-2 border-blue-500 rounded-2xl p-6 flex flex-col gap-4 hover:shadow-lg hover:shadow-blue-500/10 transition">
+              <div>
+                <span className="text-xs font-bold uppercase text-blue-400 tracking-widest">Transform</span>
+                <h4 className="text-xl font-bold mt-1">3-Month Transformation</h4>
+                <p className="text-3xl font-black mt-2">$14.99 <span className="text-sm font-normal text-gray-400">one-time</span></p>
+              </div>
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300 flex-1">
+                <li className="flex gap-2">✓ Full 4-week starter plan (PDF)</li>
+                <li className="flex gap-2">✓ Months 2–3: Progression Roadmap PDF</li>
+                <li className="flex gap-2">✓ Weekly workout & nutrition adjustments</li>
+                <li className="flex gap-2">✓ Phase goals & trainer checkpoints</li>
+                <li className="flex gap-2">✓ Both PDFs delivered to your email</li>
+              </ul>
+            </div>
+
+            {/* Elite */}
+            <div className="relative border-2 border-amber-500 rounded-2xl p-6 flex flex-col gap-4 hover:shadow-lg hover:shadow-amber-500/10 transition">
+              <div>
+                <span className="text-xs font-bold uppercase text-amber-500 tracking-widest">Elite</span>
+                <h4 className="text-xl font-bold mt-1">6-Month Journey</h4>
+                <p className="text-3xl font-black mt-2">$29.99 <span className="text-sm font-normal text-gray-400">one-time</span></p>
+              </div>
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300 flex-1">
+                <li className="flex gap-2">✓ Full 4-week starter plan (PDF)</li>
+                <li className="flex gap-2">✓ Months 2–6: Periodized Roadmap PDF</li>
+                <li className="flex gap-2">✓ 3 training phases: Foundation → Peak</li>
+                <li className="flex gap-2">✓ Specific exercise progressions per week</li>
+                <li className="flex gap-2">✓ Both PDFs delivered to your email</li>
+                <li className="flex gap-2 font-semibold text-amber-600">→ Best value for serious results</li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
@@ -296,9 +352,12 @@ export default function WizardStep() {
   const [bmi, setBmi] = useState<number | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [loadingMsg, setLoadingMsg] = useState("");
+  const [loadingTier, setLoadingTier] = useState<string | null>(null);
   const [result, setResult] = useState<any>(null);
   const [want, setWant] = useState<WantOptions>({ pdf: true, email: true });
   const [mounted, setMounted] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   // Handle hydration mismatch
   useEffect(() => {
@@ -356,6 +415,20 @@ export default function WizardStep() {
     e.preventDefault();
     setLoading(true);
 
+    // Cycle through loading messages
+    const loadingSteps = [
+      "Analyzing your profile...",
+      "Building your 4-week plan...",
+      "Calculating nutrition targets...",
+      "Preparing your PDF...",
+    ];
+    let stepIdx = 0;
+    setLoadingMsg(loadingSteps[0]);
+    const msgInterval = setInterval(() => {
+      stepIdx = (stepIdx + 1) % loadingSteps.length;
+      setLoadingMsg(loadingSteps[stepIdx]);
+    }, 2200);
+
     try {
       const res = await fetch("/api/generate-plan", {
         method: "POST",
@@ -391,14 +464,8 @@ export default function WizardStep() {
           success: true,
           plan: displayPlan,
           pdfUrl: data.pdfUrl,
-          emailError: data.emailError // Pass emailError to state
+          emailError: data.emailError
         });
-
-        // Trigger Bonus PDF generation in background if eligible
-        if (data.isBonusEligible) {
-          console.log("🎁 Eligible for bonus! Triggering background generation...");
-          fireAndForgetBonus(formData);
-        }
 
         localStorage.removeItem("fitnessWizard2025");
         window.dispatchEvent(new CustomEvent("fitness-success"));
@@ -409,25 +476,105 @@ export default function WizardStep() {
       console.error(err);
       alert("Failed to connect. Is your backend running?");
     } finally {
+      clearInterval(msgInterval);
+      setLoadingMsg("");
       setLoading(false);
     }
   };
 
-  // Helper to fire bonus generation without waiting
-  const fireAndForgetBonus = (data: FormData) => {
-    fetch("/api/generate-bonus", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ formData: data }),
-      keepalive: true, // Ensure request survives page close
-    }).catch(err => console.error("Bonus trigger failed (background):", err));
+  const handleSample = async () => {
+    // Layer 2: cookie check
+    if (document.cookie.includes("ramafit_sample=1") || localStorage.getItem("ramafit_sampled") === "1") {
+      alert("You've already received your free sample plan! Upgrade below for your full 4-week plan.");
+      return;
+    }
+    if (!formData.name || !formData.email) {
+      alert("Please fill in your name and email in step 1 first.");
+      return;
+    }
+    setLoading(true);
+    setLoadingTier("sample");
+    const msgs = ["Analyzing your profile...", "Building your Week 1 plan...", "Generating your PDF..."];
+    let mi = 0;
+    setLoadingMsg(msgs[0]);
+    const inv = setInterval(() => { mi = (mi + 1) % msgs.length; setLoadingMsg(msgs[mi]); }, 2000);
+    try {
+      // Always send timeline as 1_month for sample — ignore onboarding selection
+      const sampleData = { ...formData, timeline: "1_month", turnstileToken: turnstileToken || "" };
+      const res = await fetch("/api/generate-sample", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(sampleData),
+      });
+      if (res.status === 429) {
+        const data = await res.json();
+        alert(data.error || "Free sample limit reached. Upgrade for your full plan!");
+        return;
+      }
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Failed to generate sample. Please try again.");
+        return;
+      }
+      // Download PDF
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `RamaFit_Sample_${formData.name.replace(/\s+/g, "_")}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      // Set abused flags
+      localStorage.setItem("ramafit_sampled", "1");
+      setResult({ success: true, pdfUrl: url });
+    } catch (err) {
+      console.error(err);
+      alert("Connection failed. Please try again.");
+    } finally {
+      clearInterval(inv);
+      setLoadingMsg("");
+      setLoading(false);
+      setLoadingTier(null);
+    }
+  };
+
+  const handleCheckout = async (tier: "starter" | "transform" | "elite") => {
+    if (!formData.name || !formData.email) {
+      alert("Please fill in your name and email in step 1 first.");
+      return;
+    }
+    setLoading(true);
+    setLoadingTier(tier);
+    setLoadingMsg("Preparing your checkout...");
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tier, formData }),
+      });
+      const data = await res.json();
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        alert(data.error || "Could not start checkout. Please try again.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Connection failed. Please try again.");
+    } finally {
+      setLoadingMsg("");
+      setLoading(false);
+      setLoadingTier(null);
+    }
   };
 
   return (
     <div className={darkMode ? 'dark' : ''}>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-950 dark:via-purple-950 dark:to-pink-950 transition-colors">
         <button onClick={() => setDarkMode(!darkMode)} className="fixed top-6 right-6 z-50 p-3 bg-white dark:bg-gray-800 rounded-full shadow-lg text-2xl">
-          {darkMode ? 'Sun' : 'Moon'}
+          {darkMode ? '☽' : '☀'}
         </button>
 
         <div className="min-h-screen px-6 py-12">
@@ -449,37 +596,92 @@ export default function WizardStep() {
 
             <form onSubmit={submit} className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl p-4 md:p-12" key={step} >
               {sections[index].fields(formData, handleChange, errors, bmi, want, setWant, result, formData)}
-              <div className="flex justify-between items-center mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
-                <button type="button" onClick={() => go(step - 1)} disabled={step === 1}
-                  className="px-5 py-3 md:px-8 md:py-4 bg-gray-100 dark:bg-gray-800 rounded-xl font-bold disabled:opacity-50">
-                  ← Back
-                </button>
-
-                {index === sections.length - 1 ? (
-                  <button type="submit" disabled={loading}
-                    className="px-6 py-3 md:px-12 md:py-5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-lg md:text-xl font-bold rounded-2xl shadow-2xl hover:shadow-purple-500/50 transition transform hover:scale-105">
-                    {loading ? "Generating..." : "Generate My AI Plan"}
+              {index === sections.length - 1 ? (
+                <div className="flex flex-col gap-4 mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex justify-between items-center w-full">
+                    <button type="button" onClick={() => go(step - 1)} disabled={step === 1}
+                      className="px-5 py-3 md:px-8 md:py-4 bg-gray-100 dark:bg-gray-800 rounded-xl font-bold disabled:opacity-50">
+                      ← Back
+                    </button>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 text-right">Select a plan to continue</p>
+                  </div>
+                  {/* Cloudflare Turnstile CAPTCHA (invisible / managed mode) */}
+                  {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY !== "REPLACE_ME" && (
+                    <div className="flex justify-center">
+                      <Turnstile
+                        siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                        onSuccess={(token) => setTurnstileToken(token)}
+                        options={{ size: "compact", theme: darkMode ? "dark" : "light" }}
+                      />
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full">
+                    <button
+                      type="button"
+                      disabled={loading}
+                      onClick={handleSample}
+                      className="py-3 border-2 border-gray-300 dark:border-gray-600 text-sm font-bold rounded-xl hover:border-purple-400 transition disabled:opacity-50"
+                    >
+                      {loadingTier === "sample" ? loadingMsg : "Free Sample"}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={loading}
+                      onClick={() => handleCheckout("starter")}
+                      className="py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-bold rounded-xl shadow hover:opacity-90 transition disabled:opacity-50"
+                    >
+                      {loadingTier === "starter" ? loadingMsg : "Starter — $4.99"}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={loading}
+                      onClick={() => handleCheckout("transform")}
+                      className="py-3 bg-blue-600 text-white text-sm font-bold rounded-xl shadow hover:opacity-90 transition disabled:opacity-50"
+                    >
+                      {loadingTier === "transform" ? loadingMsg : "Transform — $14.99"}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={loading}
+                      onClick={() => handleCheckout("elite")}
+                      className="py-3 bg-amber-500 text-white text-sm font-bold rounded-xl shadow hover:opacity-90 transition disabled:opacity-50"
+                    >
+                      {loadingTier === "elite" ? loadingMsg : "Elite — $29.99"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex justify-between items-center mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
+                  <button type="button" onClick={() => go(step - 1)} disabled={step === 1}
+                    className="px-5 py-3 md:px-8 md:py-4 bg-gray-100 dark:bg-gray-800 rounded-xl font-bold disabled:opacity-50">
+                    ← Back
                   </button>
-                ) : (
                   <button type="button" onClick={() => go(step + 1)}
                     className="px-6 py-3 md:px-12 md:py-5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-lg md:text-xl font-bold rounded-2xl shadow-2xl hover:shadow-purple-500/50 transition transform hover:scale-105">
                     Next →
                   </button>
-                )}
-              </div>
+                </div>
+              )}
             </form>
 
-            <footer className="mt-12 text-center">
+            <footer className="mt-12 text-center space-x-4">
               <Link
                 href="/privacy"
                 className="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
               >
                 Privacy Policy
               </Link>
+              <span className="text-gray-300 dark:text-gray-600">|</span>
+              <Link
+                href="/terms"
+                className="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+              >
+                Terms & Refunds
+              </Link>
             </footer>
           </div>
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }

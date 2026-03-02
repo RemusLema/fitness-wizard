@@ -1,8 +1,8 @@
-// src/app/api/generate-plan/route.tsx
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { Document, Page, Text, View, StyleSheet, pdf } from "@react-pdf/renderer";
 import { BonusPDF } from "@/lib/BonusPDF";
+import { RoadmapPDF } from "@/lib/RoadmapPDF";
 import { Resend } from "resend";
 
 const openai = new OpenAI({
@@ -20,25 +20,44 @@ const resend = new Resend(process.env.RESEND_API_KEY!);
 const pdfStyles = StyleSheet.create({
   page: {
     padding: 30,
-    paddingBottom: 80, // Increased to prevent footer overlap
+    paddingBottom: 50,
     fontSize: 10,
     fontFamily: "Helvetica",
     backgroundColor: "#ffffff"
   },
   header: {
     backgroundColor: "#7c3aed",
-    padding: 12,
+    padding: 14,
     marginBottom: 12,
     borderRadius: 8,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  headerLeft: {
+    flex: 1,
+  },
+  headerBadge: {
+    backgroundColor: "#ffffff",
+    borderRadius: 20,
+    paddingTop: 4,
+    paddingBottom: 4,
+    paddingLeft: 8,
+    paddingRight: 8,
+  },
+  headerBadgeText: {
+    fontSize: 8,
+    fontWeight: "bold",
+    color: "#7c3aed",
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "bold",
     color: "#ffffff",
-    marginBottom: 4,
+    marginBottom: 3,
   },
   headerSubtitle: {
-    fontSize: 12,
+    fontSize: 11,
     color: "#e9d5ff",
   },
   section: {
@@ -56,33 +75,92 @@ const pdfStyles = StyleSheet.create({
     marginBottom: 6,
     textTransform: "uppercase",
   },
+  // Week block
+  weekTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 10,
+    marginBottom: 2,
+    paddingBottom: 3,
+    borderBottomWidth: 1,
+    borderBottomColor: "#fbcfe8",
+  },
   weekTitle: {
     fontSize: 14,
     fontWeight: "bold",
     color: "#be185d",
-    marginTop: 10,
-    marginBottom: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: "#fbcfe8",
-    paddingBottom: 3,
   },
-  dayContainer: {
+  weekTargetText: {
+    fontSize: 7,
+    color: "#64748b",
+    fontStyle: "italic",
     marginBottom: 6,
-    padding: 4,
-    backgroundColor: "#fff",
+  },
+  progressBarRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 6,
+    gap: 6,
+  },
+  progressBarTrack: {
+    fontSize: 8,
+    color: "#7c3aed",
+    fontFamily: "Courier",
+    letterSpacing: 0,
+  },
+  progressBarLabel: {
+    fontSize: 7,
+    color: "#94a3b8",
+  },
+  // Day box — 3-column grid
+  dayBox: {
+    width: "32%",
+    backgroundColor: "#ffffff",
+    borderRadius: 5,
+    padding: 6,
+    marginBottom: 6,
     borderWidth: 1,
     borderColor: "#e2e8f0",
-    borderRadius: 4,
   },
-  dayHeader: {
-    fontSize: 11,
+  // Color-coded day headers
+  dayHeaderWorkout: {
+    fontSize: 8,
     fontWeight: "bold",
-    color: "#1e293b",
-    marginBottom: 4,
-    backgroundColor: "#f1f5f9",
-    padding: 3,
+    color: "#ffffff",
+    backgroundColor: "#2563eb",
+    padding: 4,
     borderRadius: 3,
+    marginBottom: 4,
   },
+  dayHeaderRest: {
+    fontSize: 8,
+    fontWeight: "bold",
+    color: "#ffffff",
+    backgroundColor: "#16a34a",
+    padding: 4,
+    borderRadius: 3,
+    marginBottom: 4,
+  },
+  dayHeaderCardio: {
+    fontSize: 8,
+    fontWeight: "bold",
+    color: "#ffffff",
+    backgroundColor: "#ea580c",
+    padding: 4,
+    borderRadius: 3,
+    marginBottom: 4,
+  },
+  dayHeaderDefault: {
+    fontSize: 8,
+    fontWeight: "bold",
+    color: "#ffffff",
+    backgroundColor: "#7c3aed",
+    padding: 4,
+    borderRadius: 3,
+    marginBottom: 4,
+  },
+  // Section headers (inside day)
   subHeader: {
     fontSize: 9,
     fontWeight: "bold",
@@ -91,34 +169,76 @@ const pdfStyles = StyleSheet.create({
     marginBottom: 2,
   },
   timingHeader: {
-    fontSize: 9,
+    fontSize: 8,
     fontWeight: "bold",
     color: "#ea580c",
     marginTop: 4,
     marginBottom: 2,
   },
   workoutHeader: {
-    fontSize: 9,
+    fontSize: 8,
     fontWeight: "bold",
-    color: "#7c3aed",
+    color: "#2563eb",
     marginTop: 4,
     marginBottom: 2,
   },
   nutritionHeader: {
-    fontSize: 9,
+    fontSize: 8,
     fontWeight: "bold",
     color: "#16a34a",
     marginTop: 4,
     marginBottom: 2,
   },
   checkboxItem: {
-    fontSize: 8,
-    lineHeight: 1.5,
+    fontSize: 7,
+    lineHeight: 1.3,
     color: "#334155",
-    marginBottom: 2,
-    paddingLeft: 4,
+    marginBottom: 1,
+    paddingLeft: 3,
   },
-
+  // Macro summary row
+  macroRow: {
+    flexDirection: "row",
+    backgroundColor: "#f0fdf4",
+    borderRadius: 4,
+    padding: 4,
+    marginTop: 4,
+    marginBottom: 2,
+    justifyContent: "space-between",
+  },
+  macroItem: {
+    fontSize: 7,
+    fontWeight: "bold",
+    color: "#15803d",
+  },
+  // Trainer note box
+  trainerNoteBox: {
+    backgroundColor: "#f3e8ff",
+    borderLeftWidth: 2,
+    borderLeftColor: "#7c3aed",
+    borderRadius: 3,
+    padding: 5,
+    marginTop: 5,
+  },
+  trainerNoteLabel: {
+    fontSize: 7,
+    fontWeight: "bold",
+    color: "#6d28d9",
+    marginBottom: 1,
+  },
+  trainerNoteText: {
+    fontSize: 7,
+    color: "#4c1d95",
+    fontStyle: "italic",
+    lineHeight: 1.4,
+  },
+  // Divider
+  divider: {
+    borderTopWidth: 1,
+    borderTopColor: "#e2e8f0",
+    marginTop: 3,
+    marginBottom: 3,
+  },
   row: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -141,13 +261,15 @@ const pdfStyles = StyleSheet.create({
   },
   footer: {
     position: "absolute",
-    bottom: 20,
+    bottom: 18,
     left: 30,
     right: 30,
     textAlign: "center",
-    color: "#64748b",
+    color: "#94a3b8",
     fontSize: 8,
-    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#e2e8f0",
+    paddingTop: 6,
   },
   bulletPoint: {
     fontSize: 8,
@@ -161,35 +283,26 @@ const pdfStyles = StyleSheet.create({
     marginBottom: 2,
   },
   mealType: {
-    fontSize: 9,
+    fontSize: 8,
     fontWeight: "bold",
-    color: "#16a34a",
+    color: "#15803d",
     marginBottom: 1,
   },
   mealItem: {
-    fontSize: 8,
+    fontSize: 7,
     lineHeight: 1.4,
     color: "#475569",
     marginBottom: 1,
-    paddingLeft: 8,
+    paddingLeft: 6,
   },
   weekContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    gap: 10,
-  },
-  dayBox: {
-    width: "48%", // 2-Column Grid
-    backgroundColor: "#f0f9ff",
-    borderLeftWidth: 3,
-    borderLeftColor: "#7c3aed",
-    borderRadius: 6,
-    padding: 8,
-    marginBottom: 6,
+    gap: 5,
   },
   text: {
-    fontSize: 10, // Increased from 9 for better readability
+    fontSize: 9,
     lineHeight: 1.4,
     color: "#334155",
     marginBottom: 2,
@@ -210,9 +323,21 @@ const pdfStyles = StyleSheet.create({
     marginBottom: 6,
   },
   progressionText: {
-    fontSize: 10,
+    fontSize: 9,
     lineHeight: 1.5,
     color: "#1e293b",
+  },
+  dayContainer: {
+    marginBottom: 6,
+  },
+  dayHeader: {
+    fontSize: 10,
+    fontWeight: "bold",
+    color: "#ffffff",
+    backgroundColor: "#7c3aed",
+    padding: 5,
+    borderRadius: 4,
+    marginBottom: 5,
   },
 });
 
@@ -220,7 +345,7 @@ const pdfStyles = StyleSheet.create({
 const mobilePdfStyles = StyleSheet.create({
   page: {
     padding: 15,
-    paddingBottom: 60,
+    paddingBottom: 45,
     fontSize: 9,
     fontFamily: "Helvetica",
     backgroundColor: "#ffffff"
@@ -230,188 +355,105 @@ const mobilePdfStyles = StyleSheet.create({
     padding: 10,
     marginBottom: 10,
     borderRadius: 8,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#ffffff",
-    marginBottom: 4,
+  headerLeft: { flex: 1 },
+  headerBadge: {
+    backgroundColor: "#ffffff",
+    borderRadius: 20,
+    paddingTop: 3,
+    paddingBottom: 3,
+    paddingLeft: 6,
+    paddingRight: 6,
   },
-  headerSubtitle: {
-    fontSize: 10,
-    color: "#e9d5ff",
-  },
+  headerBadgeText: { fontSize: 7, fontWeight: "bold", color: "#7c3aed" },
+  headerTitle: { fontSize: 18, fontWeight: "bold", color: "#ffffff", marginBottom: 2 },
+  headerSubtitle: { fontSize: 9, color: "#e9d5ff" },
   section: {
-    marginBottom: 6,
-    padding: 6,
-    backgroundColor: "#f8fafc",
-    borderRadius: 6,
-    borderLeftWidth: 3,
-    borderLeftColor: "#7c3aed",
+    marginBottom: 6, padding: 6, backgroundColor: "#f8fafc",
+    borderRadius: 6, borderLeftWidth: 3, borderLeftColor: "#7c3aed",
   },
   sectionTitle: {
-    fontSize: 11,
-    fontWeight: "bold",
-    color: "#4c1d95",
-    marginBottom: 4,
-    textTransform: "uppercase",
+    fontSize: 11, fontWeight: "bold", color: "#4c1d95",
+    marginBottom: 4, textTransform: "uppercase",
   },
-  weekTitle: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#be185d",
-    marginTop: 8,
-    marginBottom: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: "#fbcfe8",
-    paddingBottom: 2,
+  weekTitleRow: {
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    marginTop: 8, marginBottom: 2, paddingBottom: 2,
+    borderBottomWidth: 1, borderBottomColor: "#fbcfe8",
   },
-  dayContainer: {
-    marginBottom: 4,
-    padding: 4,
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderRadius: 4,
+  weekTitle: { fontSize: 12, fontWeight: "bold", color: "#be185d" },
+  weekTargetText: { fontSize: 6, color: "#64748b", fontStyle: "italic", marginBottom: 5 },
+  progressBarRow: { flexDirection: "row", alignItems: "center", marginBottom: 5, gap: 5 },
+  progressBarTrack: { fontSize: 7, color: "#7c3aed", fontFamily: "Courier" },
+  progressBarLabel: { fontSize: 6, color: "#94a3b8" },
+  dayContainer: { marginBottom: 4 },
+  dayBox: {
+    width: "100%", backgroundColor: "#ffffff",
+    borderRadius: 5, padding: 7, marginBottom: 6,
+    borderWidth: 1, borderColor: "#e2e8f0",
+  },
+  dayHeaderWorkout: {
+    fontSize: 9, fontWeight: "bold", color: "#ffffff",
+    backgroundColor: "#2563eb", padding: 4, borderRadius: 3, marginBottom: 4,
+  },
+  dayHeaderRest: {
+    fontSize: 9, fontWeight: "bold", color: "#ffffff",
+    backgroundColor: "#16a34a", padding: 4, borderRadius: 3, marginBottom: 4,
+  },
+  dayHeaderCardio: {
+    fontSize: 9, fontWeight: "bold", color: "#ffffff",
+    backgroundColor: "#ea580c", padding: 4, borderRadius: 3, marginBottom: 4,
+  },
+  dayHeaderDefault: {
+    fontSize: 9, fontWeight: "bold", color: "#ffffff",
+    backgroundColor: "#7c3aed", padding: 4, borderRadius: 3, marginBottom: 4,
   },
   dayHeader: {
-    fontSize: 10,
-    fontWeight: "bold",
-    color: "#1e293b",
-    marginBottom: 3,
-    backgroundColor: "#f1f5f9",
-    padding: 3,
-    borderRadius: 3,
+    fontSize: 9, fontWeight: "bold", color: "#ffffff",
+    backgroundColor: "#7c3aed", padding: 4, borderRadius: 3, marginBottom: 4,
   },
-  subHeader: {
-    fontSize: 8,
-    fontWeight: "bold",
-    color: "#1e293b",
-    marginTop: 3,
-    marginBottom: 2,
+  subHeader: { fontSize: 8, fontWeight: "bold", color: "#1e293b", marginTop: 3, marginBottom: 2 },
+  timingHeader: { fontSize: 7, fontWeight: "bold", color: "#ea580c", marginTop: 3, marginBottom: 2 },
+  workoutHeader: { fontSize: 7, fontWeight: "bold", color: "#2563eb", marginTop: 3, marginBottom: 2 },
+  nutritionHeader: { fontSize: 7, fontWeight: "bold", color: "#16a34a", marginTop: 3, marginBottom: 2 },
+  checkboxItem: { fontSize: 7, lineHeight: 1.4, color: "#334155", marginBottom: 2, paddingLeft: 4 },
+  macroRow: {
+    flexDirection: "row", backgroundColor: "#f0fdf4",
+    borderRadius: 3, padding: 3, marginTop: 3, marginBottom: 2,
+    justifyContent: "space-between",
   },
-  timingHeader: {
-    fontSize: 8,
-    fontWeight: "bold",
-    color: "#ea580c",
-    marginTop: 3,
-    marginBottom: 2,
+  macroItem: { fontSize: 6, fontWeight: "bold", color: "#15803d" },
+  trainerNoteBox: {
+    backgroundColor: "#f3e8ff", borderLeftWidth: 2,
+    borderLeftColor: "#7c3aed", borderRadius: 3, padding: 4, marginTop: 4,
   },
-  workoutHeader: {
-    fontSize: 8,
-    fontWeight: "bold",
-    color: "#7c3aed",
-    marginTop: 3,
-    marginBottom: 2,
-  },
-  nutritionHeader: {
-    fontSize: 8,
-    fontWeight: "bold",
-    color: "#16a34a",
-    marginTop: 3,
-    marginBottom: 2,
-  },
-  checkboxItem: {
-    fontSize: 7,
-    lineHeight: 1.4,
-    color: "#334155",
-    marginBottom: 2,
-    paddingLeft: 4,
-  },
-
-  row: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  field: {
-    width: "48%",
-    marginBottom: 4,
-  },
-  label: {
-    fontSize: 7,
-    color: "#64748b",
-    marginBottom: 1,
-    textTransform: "uppercase",
-  },
-  value: {
-    fontSize: 9,
-    color: "#1e293b",
-    fontWeight: "bold",
-  },
+  trainerNoteLabel: { fontSize: 6, fontWeight: "bold", color: "#6d28d9", marginBottom: 1 },
+  trainerNoteText: { fontSize: 6, color: "#4c1d95", fontStyle: "italic", lineHeight: 1.3 },
+  divider: { borderTopWidth: 1, borderTopColor: "#e2e8f0", marginTop: 2, marginBottom: 2 },
+  row: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  field: { width: "48%", marginBottom: 4 },
+  label: { fontSize: 7, color: "#64748b", marginBottom: 1, textTransform: "uppercase" },
+  value: { fontSize: 9, color: "#1e293b", fontWeight: "bold" },
   footer: {
-    position: "absolute",
-    bottom: 15,
-    left: 15,
-    right: 15,
-    textAlign: "center",
-    color: "#64748b",
-    fontSize: 7,
-    paddingTop: 8,
+    position: "absolute", bottom: 12, left: 15, right: 15,
+    textAlign: "center", color: "#94a3b8", fontSize: 7,
+    borderTopWidth: 1, borderTopColor: "#e2e8f0", paddingTop: 5,
   },
-  bulletPoint: {
-    fontSize: 7,
-    lineHeight: 1.4,
-    color: "#334155",
-    marginBottom: 1,
-    paddingLeft: 6,
-  },
-  mealSection: {
-    marginTop: 2,
-    marginBottom: 2,
-  },
-  mealType: {
-    fontSize: 8,
-    fontWeight: "bold",
-    color: "#16a34a",
-    marginBottom: 1,
-  },
-  mealItem: {
-    fontSize: 7,
-    lineHeight: 1.3,
-    color: "#475569",
-    marginBottom: 1,
-    paddingLeft: 6,
-  },
-  weekContainer: {
-    flexDirection: "column",
-    gap: 6,
-  },
-  dayBox: {
-    width: "100%",
-    backgroundColor: "#f0f9ff",
-    borderLeftWidth: 3,
-    borderLeftColor: "#7c3aed",
-    borderRadius: 4,
-    padding: 6,
-    marginBottom: 4,
-  },
-  text: {
-    fontSize: 9, // Increased from 9 for better readability
-    lineHeight: 1.4,
-    color: "#334155",
-    marginBottom: 2,
-  },
+  bulletPoint: { fontSize: 7, lineHeight: 1.4, color: "#334155", marginBottom: 1, paddingLeft: 6 },
+  mealSection: { marginTop: 2, marginBottom: 2 },
+  mealType: { fontSize: 7, fontWeight: "bold", color: "#15803d", marginBottom: 1 },
+  mealItem: { fontSize: 6, lineHeight: 1.3, color: "#475569", marginBottom: 1, paddingLeft: 5 },
+  weekContainer: { flexDirection: "column", gap: 5 },
+  text: { fontSize: 8, lineHeight: 1.4, color: "#334155", marginBottom: 2 },
   progressionSection: {
-    marginTop: 8,
-    marginBottom: 8,
-    padding: 8,
-    backgroundColor: "#f0f4ff",
-    borderRadius: 6,
-    borderLeftWidth: 4,
-    borderLeftColor: "#7c3aed",
+    marginTop: 8, marginBottom: 8, padding: 8, backgroundColor: "#f0f4ff",
+    borderRadius: 6, borderLeftWidth: 4, borderLeftColor: "#7c3aed",
   },
-  progressionTitle: {
-    fontSize: 11,
-    fontWeight: "bold",
-    color: "#7c3aed",
-    marginBottom: 4,
-  },
-  progressionText: {
-    fontSize: 9,
-    lineHeight: 1.4,
-    color: "#1e293b",
-  },
+  progressionTitle: { fontSize: 11, fontWeight: "bold", color: "#7c3aed", marginBottom: 4 },
+  progressionText: { fontSize: 8, lineHeight: 1.4, color: "#1e293b" },
 });
 
 // Helper: Normalize PDF text (fix common artifacts)
@@ -421,6 +463,8 @@ function normalizeText(text: string): string {
     .replace(/\u00A0/g, ' ')  // Non-breaking spaces
     .replace(/-\n\s*/g, '')   // Hyphenated line breaks: "car-dio\n" -> "cardio"
     .replace(/([a-zA-Z])- ([a-zA-Z])/g, '$1$2')  // Mid-word hyphens: "pro-tein" -> "protein"
+    .replace(/^#{1,6}\s*/gm, '')  // Strip markdown headers: "## TIMING" -> "TIMING"
+    .replace(/\*{1,2}([^*]+)\*{1,2}/g, '$1')  // Strip bold/italic markdown: **text** -> text
     .replace(/\s+/g, ' ')     // Multiple spaces -> single
     .trim();
 }
@@ -439,8 +483,10 @@ function parseWorkoutIntoBullets(workout: string): string[] {
     .filter(p => p.length > 3);  // Slightly higher threshold
 
   for (const part of parts) {
-    // Enhanced cleaning: numbers/lists/bullets at START only
-    const cleaned = part.replace(/^\s*\d+\.\s+/, '').trim();  // Strip ONLY numbered lists like "1. " (requires period)
+    const cleaned = part
+      .replace(/^\s*\d+\.\s+/, '')  // Strip ONLY numbered lists like "1. " (requires period)
+      .replace(/^#+\s*/, '')  // Strip any leading # chars
+      .trim();
     if (cleaned.length > 3) {
       bullets.push(cleaned);
     }
@@ -493,7 +539,7 @@ const FitnessPDF = ({ data, plan, isMobile = false }: { data: any; plan: any; is
 
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
+      <Page size="A4" orientation={isMobile ? "portrait" : "landscape"} style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Fitness Wizard Plan</Text>
@@ -532,36 +578,67 @@ const FitnessPDF = ({ data, plan, isMobile = false }: { data: any; plan: any; is
           <Text style={styles.text}>{safeIntro}</Text>
         </View>
 
-        {/* ✅ FIXED: Added proper null checks and array validation */}
+        {/* Weeks + Days renderer */}
         {Array.isArray(plan?.weeks) && plan.weeks.length > 0 ? (
           plan.weeks.map((week: any, wIndex: number) => {
+            const totalWeeks = plan.weeks.length;
             const weekTitle = week?.weekTitle || `Week ${wIndex + 1}`;
+            const weekTarget = week?.weekTarget ? String(week.weekTarget) : null;
+
+            // Build ASCII progress bar: e.g. "[====------]"
+            const filled = Math.round(((wIndex + 1) / totalWeeks) * 10);
+            const empty = 10 - filled;
+            const progressBar = `[${'='.repeat(filled)}${'-'.repeat(empty)}]`;
 
             return (
               <View key={wIndex} break={wIndex > 0} style={{ flexDirection: "column" }}>
-                <Text style={styles.weekTitle}>
-                  {weekTitle}
-                </Text>
+                {/* Week header row */}
+                <View style={styles.weekTitleRow}>
+                  <Text style={styles.weekTitle}>{weekTitle}</Text>
+                  <Text style={styles.progressBarLabel}>Week {wIndex + 1} of {totalWeeks}</Text>
+                </View>
 
-                {/* 2-Column Grid Layout Container */}
+                {/* Progress bar */}
+                <View style={styles.progressBarRow}>
+                  <Text style={styles.progressBarTrack}>{progressBar}</Text>
+                  {weekTarget && (
+                    <Text style={styles.weekTargetText}>{weekTarget}</Text>
+                  )}
+                </View>
+
+                {/* 2-Column Grid */}
                 <View style={styles.weekContainer}>
-                  {/* ✅ FIXED: Validate days array */}
                   {Array.isArray(week?.days) && week.days.length > 0 ? (
                     week.days.map((day: any, dIndex: number) => {
-                      // ✅ FIXED: Convert all values to strings to prevent object rendering
                       const dayTitle = String(day?.dayTitle || `Day ${dIndex + 1}`);
                       const focus = String(day?.focus || "General Fitness");
                       const timing = String(day?.timing || "Flexible timing");
                       const workout = String(day?.workout || "Rest day or active recovery");
                       const meals = String(day?.meals || "Balanced nutrition throughout the day");
+                      const calories = day?.calories ? String(day.calories) : null;
+                      const macros = day?.macros ? String(day.macros) : null;
+                      const trainerNote = day?.trainerNote ? String(day.trainerNote) : null;
 
-                      // Parse workouts and meals for better readability
+                      // Determine day type for color-coding
+                      const focusLower = focus.toLowerCase();
+                      const isRest = focusLower.includes("rest") || focusLower.includes("recovery");
+                      const isCardio = focusLower.includes("cardio") || focusLower.includes("hiit") || focusLower.includes("run");
+                      const dayHeaderStyle = isRest
+                        ? styles.dayHeaderRest
+                        : isCardio
+                          ? styles.dayHeaderCardio
+                          : styles.dayHeaderWorkout;
+
                       const workoutBullets = parseWorkoutIntoBullets(workout);
                       const mealSections = parseMealsIntoSections(meals);
 
+                      // Parse macros string into parts
+                      const macroParts = macros ? macros.split("|").map((p: string) => p.trim()) : [];
+
                       return (
                         <View key={dIndex} style={styles.dayBox} wrap={false}>
-                          <Text style={styles.dayHeader}>
+                          {/* Color-coded day header */}
+                          <Text style={dayHeaderStyle}>
                             {dayTitle} — {focus}
                           </Text>
 
@@ -598,6 +675,26 @@ const FitnessPDF = ({ data, plan, isMobile = false }: { data: any; plan: any; is
                           ) : (
                             <Text style={styles.checkboxItem}>[ ] {meals}</Text>
                           )}
+
+                          {/* Macro summary row */}
+                          {(calories || macroParts.length > 0) && (
+                            <View style={styles.macroRow}>
+                              {calories && (
+                                <Text style={styles.macroItem}>Cal: {calories}</Text>
+                              )}
+                              {macroParts.map((part: string, idx: number) => (
+                                <Text key={idx} style={styles.macroItem}>{part}</Text>
+                              ))}
+                            </View>
+                          )}
+
+                          {/* Trainer note */}
+                          {trainerNote && (
+                            <View style={styles.trainerNoteBox}>
+                              <Text style={styles.trainerNoteLabel}>Trainer Note</Text>
+                              <Text style={styles.trainerNoteText}>{trainerNote}</Text>
+                            </View>
+                          )}
                         </View>
                       );
                     })
@@ -630,7 +727,7 @@ const FitnessPDF = ({ data, plan, isMobile = false }: { data: any; plan: any; is
 
         {/* Footer */}
         <Text style={styles.footer} fixed>
-          ramafit.xyz
+          ramafit.xyz  |  Your personalized fitness is our mission
         </Text>
       </Page>
     </Document>
@@ -639,27 +736,54 @@ const FitnessPDF = ({ data, plan, isMobile = false }: { data: any; plan: any; is
 
 export async function POST(req: NextRequest) {
   try {
+    // ── Security: Body size limit (10KB) ────────────────────────────────────
+    const contentLength = req.headers.get("content-length");
+    if (contentLength && parseInt(contentLength) > 10240) {
+      return NextResponse.json({ error: "Request too large" }, { status: 413 });
+    }
+
+    // ── Security: Auth gate ─────────────────────────────────────────────────
+    // Only webhook (with internal secret) can trigger plan generation
+    const internalSecret = process.env.INTERNAL_API_SECRET;
+    const providedSecret = req.headers.get("x-internal-secret");
+
+    if (!internalSecret || providedSecret !== internalSecret) {
+      console.warn("⛔ Unauthorized generate-plan attempt blocked");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await req.json();
 
-    // ✅ FIXED: Validate request body
     if (!body || typeof body !== 'object') {
-      return NextResponse.json(
-        { error: "Invalid request data" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid request data" }, { status: 400 });
     }
 
-    const { want, ...formData } = body;
+    // ── Extract formData (from webhook) ─────────────────────────────────────
+    let formData: any;
+    let want: any;
+    let tier = body.tier || "starter";
 
-    // ✅ FIXED: Validate required fields
+    const { want: w, tier: t, ...fd } = body;
+    formData = fd;
+    want = w;
+    if (t) tier = t;
+
+    // ── Security: Sanitize inputs ───────────────────────────────────────────
+    const sanitize = (s: string) => s?.replace(/[<>'"&]/g, '').slice(0, 500) || '';
+    formData.name = sanitize(formData.name);
+    formData.email = sanitize(formData.email);
+    formData.goal = sanitize(formData.goal || '');
+    formData.fitnessLevel = sanitize(formData.fitnessLevel || '');
+    formData.dietaryPreference = sanitize(formData.dietaryPreference || '');
+    formData.workoutLocation = sanitize(formData.workoutLocation || '');
+    formData.intensity = sanitize(formData.intensity || '');
+    formData.pastInjuries = sanitize(formData.pastInjuries || '');
+
     if (!formData.name || !formData.email) {
-      return NextResponse.json(
-        { error: "Name and email are required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
     }
 
-    console.log("📋 Generating plan for:", formData.name);
+    console.log("📋 Generating plan for:", formData.name, "| tier:", tier);
 
     // Generate AI plan with JSON structure
     const completion = await openai.chat.completions.create({
@@ -699,34 +823,44 @@ Return VALID JSON only (no extra text):
   "weeks": [
     {
       "weekTitle": "Week 1: Strength Building",
+      "weekTarget": "Volume: 3x compound lifts | Rest: 90s | Focus: Form",
       "days": [
         {
           "dayTitle": "Day 1",
           "focus": "Upper Body Strength",
           "timing": "Wake: 7am, Workout: 8am, Meals: 12pm/3pm/7pm",
           "workout": "Push-ups: 3 sets of 12 reps; Dumbbell Bench Press: 4 sets of 8-10 reps; Overhead Press: 3 sets of 10 reps; Tricep Dips: 3 sets of 12 reps; Plank: 3 sets of 45 seconds",
-          "meals": "Breakfast: Oatmeal with banana and almonds (400 cal); Lunch: Grilled chicken with quinoa and vegetables (550 cal); Dinner: Salmon with sweet potato and broccoli (600 cal); Snacks: Greek yogurt, protein shake"
+          "meals": "Breakfast: Oatmeal with banana and almonds (400 cal); Lunch: Grilled chicken with quinoa and vegetables (550 cal); Dinner: Salmon with sweet potato and broccoli (600 cal); Snacks: Greek yogurt, protein shake",
+          "calories": "1800",
+          "macros": "Protein: 140g | Carbs: 180g | Fat: 55g",
+          "trainerNote": "Focus on slow controlled reps — form beats weight every time."
         },
         {
           "dayTitle": "Day 2",
           "focus": "Lower Body Strength",
           "timing": "Wake: 7am, Workout: 8am, Meals: 12pm/3pm/7pm",
           "workout": "Squats: 4 sets of 10 reps; Deadlifts: 3 sets of 8 reps; Lunges: 3 sets of 12 reps per leg; Leg Press: 3 sets of 15 reps; Calf Raises: 4 sets of 20 reps",
-          "meals": "Breakfast: Scrambled eggs with whole grain toast (450 cal); Lunch: Turkey wrap with avocado (500 cal); Dinner: Lean beef stir-fry with brown rice (650 cal); Snacks: Protein bar, mixed nuts"
+          "meals": "Breakfast: Scrambled eggs with whole grain toast (450 cal); Lunch: Turkey wrap with avocado (500 cal); Dinner: Lean beef stir-fry with brown rice (650 cal); Snacks: Protein bar, mixed nuts",
+          "calories": "1750",
+          "macros": "Protein: 135g | Carbs: 175g | Fat: 52g",
+          "trainerNote": "Drive through your heels on squats — protect your knees."
         }
       ]
     },
     {
       "weekTitle": "Week 2: Progressive Overload",
-      "days": [ ... continue with 7 days ... ]
+      "weekTarget": "Increase weight 5-10% | Rest: 75s | Focus: Progression",
+      "days": [ ... continue with 7 days, each including calories, macros, trainerNote ... ]
     },
     {
       "weekTitle": "Week 3: Intensity",
-      "days": [ ... continue with 7 days ... ]
+      "weekTarget": "Volume up 15% | Supersets on 2 days | Rest: 60s",
+      "days": [ ... continue with 7 days, each including calories, macros, trainerNote ... ]
     },
     {
       "weekTitle": "Week 4: Peak Performance",
-      "days": [ ... continue with 7 days ... ]
+      "weekTarget": "Max effort | Deload last 2 days | Test 1-rep maxes",
+      "days": [ ... continue with 7 days, each including calories, macros, trainerNote ... ]
     }
   ],
   "progressionNotes": "Week 5-8 (Next Cycle): Increase all compound lifts by 5-10%; Add 1-2 reps per set; Reduce rest periods by 10-15 seconds; Introduce supersets on upper body days; Add plyometric variations to lower body sessions"
@@ -736,9 +870,13 @@ CRITICAL FORMATTING INSTRUCTIONS:
 - Each week MUST have 7 days (Day 1-7) with complete details
 - "workout" field: Use semicolons to separate exercises. Format: "Exercise Name: Sets x Reps; Next Exercise: Sets x Reps"
 - "meals" field: Use format "Breakfast: food details (calories); Lunch: food details (calories); Dinner: food details (calories); Snacks: items"
-- All values (dayTitle, focus, workout, meals, timing) MUST be STRINGS, never objects or arrays
-- **progressionNotes requirement**: If timeline is "3_months" or "6_months" → "progressionNotes" field is MANDATORY. Provide specific progression instructions (weight increases, rep additions, rest reductions, exercise progressions)
-- Be detailed but stay under token limit — do NOT truncate the JSON
+- "calories" field: Total daily calories as a plain number string, e.g. "1800". Adjust for goal (deficit for weight loss, surplus for muscle gain).
+- "macros" field: Format exactly as "Protein: Xg | Carbs: Xg | Fat: Xg". Derive from calories and goal. Keep realistic.
+- "trainerNote" field: ONE specific sentence of coaching advice relevant to that day's focus. Be concrete, not generic. Max 20 words.
+- "weekTarget" field per week: ONE line summarizing the week's training focus/metrics. Format: "Key metric | Key metric | Focus: X".
+- All values MUST be STRINGS, never objects or arrays
+- **progressionNotes requirement**: If timeline is "3_months" or "6_months" → "progressionNotes" field is MANDATORY.
+- Be detailed but concise — do NOT truncate the JSON, do NOT pad with filler text
 - Use encouraging but realistic tone`
         },
         {
@@ -849,32 +987,57 @@ CRITICAL FORMATTING INSTRUCTIONS:
       }
     }
 
-    // Determine bonus eligibility
-    const isBonusEligible = formData.timeline === "3_months" || formData.timeline === "6_months";
+    // ── Roadmap generation for Transform / Elite tiers ───────────────────────
+    const needsRoadmap = tier === "transform" || tier === "elite" ||
+      formData.timeline === "3_months" || formData.timeline === "6_months";
 
-    // Generate bonus PDF if eligible (fire and forget)
-    let bonusGenerationStatus = "not_triggered";
-    if (isBonusEligible) {
-      console.log("🎁 Triggering bonus PDF generation...");
-      fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/generate-bonus`, {
+    if (needsRoadmap) {
+      console.log("🗺️ Triggering progression roadmap...");
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
+      // Fire and forget — roadmap emails separately
+      fetch(`${baseUrl}/api/generate-roadmap`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ formData: { ...formData, want } })
-      }).then(() => {
-        console.log("✅ Bonus PDF generation initiated");
-        bonusGenerationStatus = "initiated";
-      }).catch((bonusError) => {
-        console.error("❌ Bonus API call error:", bonusError);
-        bonusGenerationStatus = "failed";
-      });
+        body: JSON.stringify({ formData, month1Plan: aiPlan, timeline: formData.timeline }),
+      })
+        .then(async (r) => {
+          if (!r.ok) { console.error("Roadmap API error", r.status); return; }
+          const { roadmap } = await r.json();
+          if (!roadmap) { console.error("No roadmap returned"); return; }
+          // Render roadmap PDF
+          const { pdf: pdfFn } = await import("@react-pdf/renderer");
+          const { createElement } = await import("react");
+          const roadmapElement = createElement(RoadmapPDF, { roadmap });
+          const roadmapBlob = await pdfFn(roadmapElement as any).toBlob();
+          const roadmapBuffer = Buffer.from(await roadmapBlob.arrayBuffer());
+          // Send roadmap as separate email
+          if (formData.email && process.env.RESEND_API_KEY) {
+            const label = formData.timeline === "6_months" ? "6-Month" : "3-Month";
+            await resend.emails.send({
+              from: "Fitness Wizard <hello@ramafit.xyz>",
+              to: formData.email,
+              subject: `Your ${label} Progression Roadmap is here 🗺️`,
+              html: `<div style="font-family:sans-serif;color:#333">
+                <h1>Your Progression Roadmap 🗺️</h1>
+                <p>Hi ${formData.name.split(' ')[0]},</p>
+                <p>Attached is your personalized <strong>${label} Progression Roadmap</strong>.</p>
+                <p>It picks up right where your Month 1 plan leaves off — with specific workout progressions, nutrition adjustments, and coaching tips for every week.</p>
+                <p style="color:#666;font-size:13px">Questions? Reply to this email or reach us at <strong>hello@ramafit.xyz</strong></p>
+              </div>`,
+              attachments: [{ filename: `RamaFit_${label}_Roadmap.pdf`, content: roadmapBuffer }],
+            });
+            console.log("✅ Roadmap email sent");
+          }
+        })
+        .catch((err) => console.error("❌ Roadmap generation failed:", err));
     }
 
     return NextResponse.json({
       success: true,
       plan: aiPlan,
+      email: formData.email,
       emailError: emailError,
-      isBonusEligible,
-      bonusStatus: bonusGenerationStatus,
+      needsRoadmap,
       desktopPdf: Buffer.from(desktopPdfBuffer).toString("base64"),
       mobilePdf: Buffer.from(mobilePdfBuffer).toString("base64")
     });
