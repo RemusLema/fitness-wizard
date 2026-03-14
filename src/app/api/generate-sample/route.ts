@@ -10,19 +10,23 @@ const openai = new OpenAI({
     baseURL: process.env.OPENAI_BASE_URL || "https://api.openai.com/v1",
 });
 
-// ── KV helpers (gracefully degrade if KV not configured) ──────────────────────
+// ── Redis helpers (gracefully degrade if Redis not configured) ─────────────────
+import { getRedis } from "@/lib/redis";
+
 async function kvGet(key: string): Promise<string | null> {
     try {
-        const { kv } = await import("@vercel/kv");
-        return await kv.get<string>(key);
+        const redis = getRedis();
+        if (!redis) return null;
+        return await redis.get<string>(key);
     } catch { return null; }
 }
 async function kvSet(key: string, value: string, opts?: { ex?: number }) {
     try {
-        const { kv } = await import("@vercel/kv");
-        if (opts?.ex) await kv.set(key, value, { ex: opts.ex });
-        else await kv.set(key, value);
-    } catch { /* KV not configured — skip silently */ }
+        const redis = getRedis();
+        if (!redis) return;
+        if (opts?.ex) await redis.set(key, value, { ex: opts.ex });
+        else await redis.set(key, value);
+    } catch { /* Redis not configured — skip silently */ }
 }
 
 function hashEmail(email: string): string {

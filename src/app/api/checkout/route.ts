@@ -20,17 +20,20 @@ export async function POST(req: NextRequest) {
             req.headers.get("x-real-ip") || "unknown";
 
         try {
-            const { kv } = await import("@vercel/kv");
-            const key = `ratelimit:checkout:${ip}`;
-            const count = await kv.get<number>(key);
-            if (count !== null && count >= 5) {
-                return NextResponse.json(
-                    { error: "Too many checkout attempts. Please try again later." },
-                    { status: 429 }
-                );
+            const { getRedis } = await import("@/lib/redis");
+            const redis = getRedis();
+            if (redis) {
+                const key = `ratelimit:checkout:${ip}`;
+                const count = await redis.get<number>(key);
+                if (count !== null && count >= 5) {
+                    return NextResponse.json(
+                        { error: "Too many checkout attempts. Please try again later." },
+                        { status: 429 }
+                    );
+                }
+                await redis.set(key, (count || 0) + 1, { ex: 3600 });
             }
-            await kv.set(key, (count || 0) + 1, { ex: 3600 });
-        } catch { /* KV not configured — skip rate limiting */ }
+        } catch { /* Redis not configured — skip rate limiting */ }
 
         const body = await req.json();
         const { tier, formData } = body;
@@ -103,8 +106,11 @@ export async function POST(req: NextRequest) {
 
         if (!response.ok) {
             const errText = await response.text();
-            console.error("Lemon Squeezy error:", errText);
-            return NextResponse.json({ error: "Failed to create checkout" }, { status: 500 });
+            console.error("Lemon Squeezy error:", response.status, errText);
+            return NextResponse.json(
+                { error: "Failed to create checkout", details: `LS API returned ${response.status}` },
+                { status: 500 }
+            );
         }
 
         const result = await response.json();

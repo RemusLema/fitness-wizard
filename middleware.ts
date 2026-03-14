@@ -12,7 +12,9 @@ export async function middleware(req: NextRequest) {
     }
 
     try {
-        const { kv } = await import("@vercel/kv");
+        const { getRedis } = await import("@/lib/redis");
+        const redis = getRedis();
+        if (!redis) return NextResponse.next(); // Redis not configured — skip
 
         const ip =
             req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
@@ -20,7 +22,7 @@ export async function middleware(req: NextRequest) {
             "unknown";
 
         const key = `ratelimit:sample:${ip}`;
-        const count = await kv.get<number>(key);
+        const count = await redis.get<number>(key);
 
         if (count !== null && count >= 2) {
             return NextResponse.json(
@@ -32,7 +34,7 @@ export async function middleware(req: NextRequest) {
             );
         }
     } catch {
-        // KV not configured → let request through (graceful degradation)
+        // Redis error — let request through (graceful degradation)
     }
 
     return NextResponse.next();
