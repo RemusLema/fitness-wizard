@@ -167,8 +167,29 @@ function SamplePDF({ name, goal, week }: { name: string; goal: string; week: any
 
 export async function POST(req: NextRequest) {
     try {
+        // ── Security: CSRF origin check ─────────────────────────────────────
+        const { checkOrigin, logSecurityEvent, sanitizeInput } = await import("@/lib/security");
+        const csrfBlock = checkOrigin(req);
+        if (csrfBlock) return csrfBlock;
+
+        // ── Security: Body size limit ───────────────────────────────────────
+        const contentLength = req.headers.get("content-length");
+        if (contentLength && parseInt(contentLength) > 10240) {
+            logSecurityEvent("body_too_large", req);
+            return NextResponse.json({ error: "Request too large" }, { status: 413 });
+        }
+
         const body = await req.json();
-        const { name, email, goal, fitnessLevel, equipment, dietaryPreference } = body;
+
+        // ── Security: Sanitize inputs ───────────────────────────────────────
+        const name = sanitizeInput(body.name);
+        const email = sanitizeInput(body.email);
+        const goal = sanitizeInput(body.goal || "");
+        const fitnessLevel = sanitizeInput(body.fitnessLevel || "");
+        const dietaryPreference = sanitizeInput(body.dietaryPreference || "");
+        const equipment = Array.isArray(body.equipment)
+            ? body.equipment.map((e: string) => sanitizeInput(e))
+            : [];
 
         if (!name || !email) {
             return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
@@ -188,6 +209,7 @@ export async function POST(req: NextRequest) {
             });
             const verifyData = await verifyRes.json();
             if (!verifyData.success) {
+                logSecurityEvent("captcha_failed", req);
                 return NextResponse.json({ error: "CAPTCHA verification failed" }, { status: 403 });
             }
         }

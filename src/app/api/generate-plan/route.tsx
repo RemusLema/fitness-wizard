@@ -748,7 +748,8 @@ export async function POST(req: NextRequest) {
     const providedSecret = req.headers.get("x-internal-secret");
 
     if (!internalSecret || providedSecret !== internalSecret) {
-      console.warn("⛔ Unauthorized generate-plan attempt blocked");
+      const { logSecurityEvent } = await import("@/lib/security");
+      logSecurityEvent("auth_blocked", req);
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

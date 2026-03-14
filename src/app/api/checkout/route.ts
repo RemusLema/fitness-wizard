@@ -9,9 +9,15 @@ const VARIANT_IDS: Record<string, string> = {
 
 export async function POST(req: NextRequest) {
     try {
+        // ── Security: CSRF origin check ─────────────────────────────────────
+        const { checkOrigin, logSecurityEvent } = await import("@/lib/security");
+        const csrfBlock = checkOrigin(req);
+        if (csrfBlock) return csrfBlock;
+
         // ── Security: Body size limit ───────────────────────────────────────
         const contentLength = req.headers.get("content-length");
         if (contentLength && parseInt(contentLength) > 10240) {
+            logSecurityEvent("body_too_large", req);
             return NextResponse.json({ error: "Request too large" }, { status: 413 });
         }
 
