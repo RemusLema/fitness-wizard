@@ -32,7 +32,7 @@ export default function TermsAndConditions() {
                     <h2>1. What We Sell</h2>
                     <p>RamaFit sells AI-generated, personalized fitness and nutrition plans delivered as downloadable PDF documents and emailed to you. Our products are:</p>
                     <ul>
-                        <li><strong>Starter Plan ($4.99):</strong> A complete 4-week personalized training and nutrition plan with daily workouts, meal plans with macros, and coaching notes</li>
+                        <li><strong>Starter Plan ($6.99):</strong> A complete 4-week personalized training and nutrition plan with daily workouts, meal plans with macros, and coaching notes</li>
                         <li><strong>Transform Plan ($14.99):</strong> The full 4-week starter plan plus a 3-month progression roadmap with workout and nutrition adjustments</li>
                         <li><strong>Elite Plan ($29.99):</strong> The full 4-week starter plan plus a 6-month periodized journey with three distinct training phases</li>
                     </ul>

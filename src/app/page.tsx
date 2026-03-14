@@ -41,7 +41,7 @@ const features = [
 const tiers = [
   {
     name: "Starter",
-    price: "$4.99",
+    price: "$6.99",
     period: "one-time",
     highlight: false,
     badge: "",
@@ -408,7 +408,7 @@ export default function LandingPage() {
               Why pay{" "}
               <span className="line-through text-gray-600">$15/month</span>{" "}
               <span className="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-                when $4.99 gets you more?
+                when $6.99 gets you more?
               </span>
             </h2>
           </div>
@@ -418,7 +418,7 @@ export default function LandingPage() {
               <div className="p-4 md:p-6 border-b border-r border-gray-800 font-bold text-gray-500 text-sm">Feature</div>
               <div className="p-4 md:p-6 border-b border-r border-gray-800 text-center">
                 <div className="font-bold text-purple-400">RamaFit</div>
-                <div className="text-xs text-gray-500">from $4.99</div>
+                <div className="text-xs text-gray-500">from $6.99</div>
               </div>
               <div className="p-4 md:p-6 border-b border-gray-800 text-center">
                 <div className="font-bold text-gray-400">Typical App</div>

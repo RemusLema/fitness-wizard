@@ -285,7 +285,7 @@ const sections: Section[] = [
               <div>
                 <span className="text-xs font-bold uppercase text-purple-400 tracking-widest">Starter</span>
                 <h4 className="text-xl font-bold mt-1">4-Week Full Plan</h4>
-                <p className="text-3xl font-black mt-2">$4.99 <span className="text-sm font-normal text-gray-400">one-time</span></p>
+                <p className="text-3xl font-black mt-2">$6.99 <span className="text-sm font-normal text-gray-400">one-time</span></p>
               </div>
               <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300 flex-1">
                 <li className="flex gap-2">✓ Complete 4-week plan (28 days)</li>
@@ -630,7 +630,7 @@ export default function WizardStep() {
                       onClick={() => handleCheckout("starter")}
                       className="py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-bold rounded-xl shadow hover:opacity-90 transition disabled:opacity-50"
                     >
-                      {loadingTier === "starter" ? loadingMsg : "Starter — $4.99"}
+                      {loadingTier === "starter" ? loadingMsg : "Starter — $6.99"}
                     </button>
                     <button
                       type="button"
