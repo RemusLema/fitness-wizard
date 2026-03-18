@@ -995,11 +995,9 @@ CRITICAL FORMATTING INSTRUCTIONS:
 
     if (needsRoadmap) {
       console.log("🗺️ Triggering progression roadmap...");
-      const baseUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL 
-        ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` 
-        : (process.env.VERCEL_URL 
-            ? `https://${process.env.VERCEL_URL}` 
-            : process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000");
+      const baseUrl = process.env.VERCEL_URL 
+        ? `https://${process.env.VERCEL_URL}` 
+        : process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
       // Fire and forget — roadmap emails separately
       fetch(`${baseUrl}/api/generate-roadmap`, {
         method: "POST",
