@@ -12,6 +12,8 @@ const openai = new OpenAI({
 
 // ── Redis helpers (gracefully degrade if Redis not configured) ─────────────────
 import { getRedis } from "@/lib/redis";
+import { logSecurityEvent } from "@/lib/security";
+import { stripEmojis } from "@/lib/utils";
 
 async function kvGet(key: string): Promise<string | null> {
     try {
@@ -277,7 +279,7 @@ RULES:
         const aiText = completion.choices[0]?.message?.content;
         if (!aiText) throw new Error("No AI response");
 
-        const week = JSON.parse(aiText);
+        const week = stripEmojis(JSON.parse(aiText));
 
         // ── Render PDF ─────────────────────────────────────────────────────────────
         const pdfElement = createElement(SamplePDF, { name, goal, week });

@@ -4,6 +4,7 @@ import { Document, Page, Text, View, StyleSheet, pdf } from "@react-pdf/renderer
 import { BonusPDF } from "@/lib/BonusPDF";
 import { RoadmapPDF } from "@/lib/RoadmapPDF";
 import { Resend } from "resend";
+import { stripEmojis } from "@/lib/utils";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
@@ -899,7 +900,7 @@ CRITICAL FORMATTING INSTRUCTIONS:
 
     let aiPlan;
     try {
-      aiPlan = JSON.parse(aiContent);
+      aiPlan = stripEmojis(JSON.parse(aiContent));
       console.log("✅ AI Plan parsed successfully");
     } catch (parseError) {
       console.error("❌ Failed to parse AI JSON:", parseError);
@@ -994,7 +995,11 @@ CRITICAL FORMATTING INSTRUCTIONS:
 
     if (needsRoadmap) {
       console.log("🗺️ Triggering progression roadmap...");
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
+      const baseUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL 
+        ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` 
+        : (process.env.VERCEL_URL 
+            ? `https://${process.env.VERCEL_URL}` 
+            : process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000");
       // Fire and forget — roadmap emails separately
       fetch(`${baseUrl}/api/generate-roadmap`, {
         method: "POST",
