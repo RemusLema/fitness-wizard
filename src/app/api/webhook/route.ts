@@ -72,6 +72,8 @@ export async function POST(req: NextRequest) {
             fitnessLevel: customData.fitnessLevel || "",
             timeline: customData.timeline || "",
             dietaryPreference: customData.dietaryPreference || "",
+            eatingStyle: customData.eatingStyle || "",
+            localFoods: customData.localFoods ? customData.localFoods.split(",") : [],
             equipment: customData.equipment ? customData.equipment.split(",") : [],
             waterIntake: customData.waterIntake || "",
             workoutLocation: customData.workoutLocation || "",

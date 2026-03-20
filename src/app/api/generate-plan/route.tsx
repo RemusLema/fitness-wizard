@@ -5,6 +5,7 @@ import { BonusPDF } from "@/lib/BonusPDF";
 import { RoadmapPDF } from "@/lib/RoadmapPDF";
 import { Resend } from "resend";
 import { stripEmojis } from "@/lib/utils";
+import { buildLocalFoodPromptBlock } from "@/lib/localFoods";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
@@ -797,10 +798,12 @@ export async function POST(req: NextRequest) {
 
 Create a highly detailed, personalized 4-week training + nutrition cycle based on the user's exact:
 - Goal: ${formData.goal}
-- Fitness level: ${formData.fitnessLevel} ← USE THIS EXACTLY (never assume beginner)
+- Fitness level: ${formData.fitnessLevel} <-- USE THIS EXACTLY (never assume beginner)
 - Timeline: ${formData.timeline}
 - Equipment: ${formData.equipment?.length > 0 ? formData.equipment.join(", ") : "bodyweight"}
 - Diet preference: ${formData.dietaryPreference}
+- Training location: ${formData.workoutLocation || "home"}
+${buildLocalFoodPromptBlock(formData.localFoods || [])}
 
 RULES:
 - If timeline is "1_month" → this is their COMPLETE plan. Do NOT include "progressionNotes" field.

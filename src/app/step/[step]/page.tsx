@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { User, Target, Salad, Dumbbell, Clock } from 'lucide-react';
 import SamplePlanPreview from '@/components/SamplePlanPreview';
 import { Turnstile } from '@marsidev/react-turnstile';
+import { localFoodOptions } from '@/lib/localFoods';
 
 type FormData = {
   name: string;
@@ -18,6 +19,8 @@ type FormData = {
   intensity: string;
   timeline: string;
   dietaryPreference: string;
+  eatingStyle: string;
+  localFoods: string[];
   foodAllergies: string;
   waterIntake: string;
   fitnessLevel: string;
@@ -158,6 +161,55 @@ const sections: Section[] = [
     icon: <Salad className="w-12 h-12 text-green-500" />,
     fields: (data, onChange) => (
       <div className="space-y-8">
+        {/* Eating Style */}
+        <div>
+          <label className="block text-sm font-semibold mb-3">What best describes your eating style?</label>
+          <div className="space-y-3">
+            {[
+              { value: 'local_rwandan', label: 'I eat mostly local Rwandan foods' },
+              { value: 'mixed', label: 'I eat a mix of local and international foods' },
+              { value: 'international', label: 'I prefer international / gym-diet foods' },
+            ].map(opt => (
+              <label key={opt.value} className={`flex items-center gap-3 p-3 md:p-4 border-2 rounded-xl cursor-pointer transition ${
+                data.eatingStyle === opt.value ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-green-300'
+              }`}>
+                <input type="radio" name="eatingStyle" value={opt.value} checked={data.eatingStyle === opt.value} onChange={onChange} className="w-5 h-5 text-green-600" />
+                <span className="text-sm font-medium">{opt.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Local Foods Multi-Select — shown when eating style includes local foods */}
+        {(data.eatingStyle === 'local_rwandan' || data.eatingStyle === 'mixed') && (
+          <div>
+            <label className="block text-sm font-semibold mb-3">Which local foods do you eat regularly? <span className="text-gray-400 font-normal">(select all that apply)</span></label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {localFoodOptions.map(food => (
+                <label key={food.key} className={`flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer transition ${
+                  data.localFoods.includes(food.key) ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-green-300'
+                }`}>
+                  <input
+                    type="checkbox"
+                    value={food.key}
+                    checked={data.localFoods.includes(food.key)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const updated = data.localFoods.includes(val)
+                        ? data.localFoods.filter((f: string) => f !== val)
+                        : [...data.localFoods, val];
+                      onChange({ target: { name: 'localFoods', value: updated } } as any);
+                    }}
+                    className="w-5 h-5 text-green-600 rounded"
+                  />
+                  <span className="text-sm font-medium">{food.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Dietary Preference (kept for veg/vegan/keto users) */}
         <div>
           <label className="block text-sm font-semibold mb-3">Dietary Preference</label>
           <select name="dietaryPreference" value={data.dietaryPreference} onChange={onChange} className="w-full p-3 md:p-4 text-sm md:text-base border rounded-xl bg-white dark:bg-gray-800">
@@ -176,7 +228,7 @@ const sections: Section[] = [
           <label className="block text-sm font-semibold mb-2">Daily Water Intake</label>
           <select name="waterIntake" value={data.waterIntake} onChange={onChange} className="w-full p-3 md:p-4 text-sm md:text-base border rounded-xl bg-white dark:bg-gray-800">
             <option value="4">Less than 4 glasses</option>
-            <option value="6">4–6 glasses</option>
+            <option value="6">4-6 glasses</option>
             <option value="8">8 glasses (Recommended)</option>
             <option value="10">10+ glasses</option>
           </select>
@@ -205,6 +257,7 @@ const sections: Section[] = [
               <option value="home">Home</option>
               <option value="gym">Gym</option>
               <option value="outdoor">Outdoor</option>
+              <option value="outdoor_hills">Outdoor / Hills & Tracks</option>
             </select>
           </div>
         </div>
@@ -345,7 +398,8 @@ export default function WizardStep() {
   const [formData, setFormData] = useState<FormData>({
     name: "", email: "", age: "", gender: "", weight: "", height: "",
     goal: "weight_loss", intensity: "moderate", timeline: "3_months",
-    dietaryPreference: "standard", foodAllergies: "", waterIntake: "6",
+    dietaryPreference: "standard", eatingStyle: "mixed", localFoods: [],
+    foodAllergies: "", waterIntake: "6",
     fitnessLevel: "beginner", workoutLocation: "home", pastInjuries: "",
     equipment: [], targetWeightLoss: ""
   });

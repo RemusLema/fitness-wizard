@@ -14,6 +14,7 @@ const openai = new OpenAI({
 import { getRedis } from "@/lib/redis";
 import { logSecurityEvent } from "@/lib/security";
 import { stripEmojis } from "@/lib/utils";
+import { buildLocalFoodPromptBlock } from "@/lib/localFoods";
 
 async function kvGet(key: string): Promise<string | null> {
     try {
@@ -192,6 +193,9 @@ export async function POST(req: NextRequest) {
         const equipment = Array.isArray(body.equipment)
             ? body.equipment.map((e: string) => sanitizeInput(e))
             : [];
+        const localFoods = Array.isArray(body.localFoods)
+            ? body.localFoods.map((f: string) => sanitizeInput(f))
+            : [];
 
         if (!name || !email) {
             return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
@@ -267,6 +271,7 @@ RULES:
 - 7 days exactly (Day 1–7). Include 2 rest/recovery days.
 - Use level-specific titles for the weekTitle based on fitnessLevel.
 - Goal: ${goal}, Level: ${fitnessLevel}, Equipment: ${Array.isArray(equipment) && equipment.length > 0 ? equipment.join(", ") : "bodyweight"}, Diet: ${dietaryPreference}
+${buildLocalFoodPromptBlock(localFoods)}
 - All values must be STRINGS. Be specific and realistic. Do NOT truncate.`
                 },
                 { role: "user", content: `Generate Week 1 for: ${name}, goal: ${goal}, level: ${fitnessLevel}` }

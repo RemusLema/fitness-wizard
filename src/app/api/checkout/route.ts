@@ -70,6 +70,8 @@ export async function POST(req: NextRequest) {
             timeline: formData.timeline || "",
             tier,
             dietaryPreference: formData.dietaryPreference || "",
+            eatingStyle: formData.eatingStyle || "",
+            localFoods: Array.isArray(formData.localFoods) ? formData.localFoods.join(",") : "",
             equipment: Array.isArray(formData.equipment) ? formData.equipment.join(",") : "",
             waterIntake: formData.waterIntake || "",
             workoutLocation: formData.workoutLocation || "",
