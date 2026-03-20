@@ -31,10 +31,8 @@ type FormData = {
   [key: string]: any;
 };
 
-type WantOptions = {
-  pdf: boolean;
-  email: boolean;
-};
+// FIX: Removed WantOptions type and want/setWant state — dead code, never used
+// (all plan actions use handleSample/handleCheckout directly, not the form submit)
 
 type Section = {
   title: string;
@@ -45,8 +43,6 @@ type Section = {
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void,
     errors: Record<string, string>,
     bmi: number | null,
-    want: WantOptions,
-    setWant: React.Dispatch<React.SetStateAction<WantOptions>>,
     result: any,
     formData: FormData
   ) => React.ReactNode;
@@ -187,17 +183,21 @@ const sections: Section[] = [
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {localFoodOptions.map(food => (
                 <label key={food.key} className={`flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer transition ${
-                  data.localFoods.includes(food.key) ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-green-300'
+                  // FIX: ?? [] guard in case localFoods is ever undefined (e.g. stale localStorage)
+                  (data.localFoods ?? []).includes(food.key) ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-green-300'
                 }`}>
                   <input
                     type="checkbox"
+                    // FIX: added name="localFoods" so handleChange can identify this input correctly
+                    name="localFoods"
                     value={food.key}
-                    checked={data.localFoods.includes(food.key)}
+                    checked={(data.localFoods ?? []).includes(food.key)}
                     onChange={(e) => {
                       const val = e.target.value;
-                      const updated = data.localFoods.includes(val)
-                        ? data.localFoods.filter((f: string) => f !== val)
-                        : [...data.localFoods, val];
+                      const current = data.localFoods ?? [];
+                      const updated = current.includes(val)
+                        ? current.filter((f: string) => f !== val)
+                        : [...current, val];
                       onChange({ target: { name: 'localFoods', value: updated } } as any);
                     }}
                     className="w-5 h-5 text-green-600 rounded"
@@ -272,7 +272,8 @@ const sections: Section[] = [
     title: "Choose Your Plan",
     description: "Select the option that fits your goals",
     icon: <Clock className="w-12 h-12 text-yellow-500" />,
-    fields: (data, onChange, _errors, _bmi, want, setWant, result, formData) => (
+    // FIX: removed want/setWant params from signature — they were dead code
+    fields: (data, onChange, _errors, _bmi, result, formData) => (
       <div className="space-y-10">
         {/* Equipment */}
         <div>
@@ -280,7 +281,8 @@ const sections: Section[] = [
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {["Bodyweight Only", "Dumbbells", "Resistance Bands", "Kettlebells", "Pull-up Bar", "Gym Access"].map(item => (
               <label key={item} className="flex items-center gap-3 p-3 border rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition">
-                <input type="checkbox" value={item} checked={data.equipment.includes(item)} onChange={onChange} className="w-5 h-5 text-purple-600 rounded" />
+                {/* FIX: added name="equipment" so handleChange identifies these correctly */}
+                <input type="checkbox" name="equipment" value={item} checked={(data.equipment ?? []).includes(item)} onChange={onChange} className="w-5 h-5 text-purple-600 rounded" />
                 <span className="text-sm font-medium">{item}</span>
               </label>
             ))}
@@ -291,6 +293,8 @@ const sections: Section[] = [
         {result?.success && (
           <div className="p-8 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-2xl border-2 border-emerald-300 dark:border-emerald-700 text-center">
             <h3 className="text-2xl font-bold mb-4">🎉 Your Sample Plan is Ready!</h3>
+            {/* FIX: pdfUrl is now null after sample download (blob was revoked), so this
+                block correctly won't render a broken link. The download already happened. */}
             {result.pdfUrl && (
               <a href={result.pdfUrl} download className="inline-block px-10 py-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xl font-bold rounded-2xl shadow transition mb-6">
                 ↓ Download Your Week 1 Sample
@@ -409,7 +413,6 @@ export default function WizardStep() {
   const [loadingMsg, setLoadingMsg] = useState("");
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
   const [result, setResult] = useState<any>(null);
-  const [want, setWant] = useState<WantOptions>({ pdf: true, email: true });
   const [mounted, setMounted] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
@@ -420,9 +423,18 @@ export default function WizardStep() {
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     setDarkMode(prefersDark);
 
-    // Load saved data
+    // FIX: spread defaults first so new fields (localFoods, eatingStyle, etc.) are always
+    // present even if localStorage has an older saved object that's missing them
     const saved = localStorage.getItem("fitnessWizard2025");
-    if (saved) setFormData(JSON.parse(saved));
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      setFormData(prev => ({
+        ...prev,
+        ...parsed,
+        localFoods: parsed.localFoods ?? [],
+        equipment:  parsed.equipment  ?? [],
+      }));
+    }
   }, []);
 
   // Auto-save
@@ -448,15 +460,24 @@ export default function WizardStep() {
     return null; // Prevents hydration mismatch, strictly after all hooks
   }
 
+  // FIX: handleChange now correctly handles three distinct cases:
+  //   1. localFoods — synthetic array event from the local foods checkboxes
+  //   2. equipment  — named checkbox inputs (name="equipment")
+  //   3. everything else — standard controlled inputs
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
 
-    if (type === "checkbox" && !name) {
-      const val = (e.target as HTMLInputElement).value;
+    if (name === 'localFoods') {
+      // Synthetic event from local foods checkbox onChange — value is already the updated array
+      setFormData(prev => ({ ...prev, localFoods: value as any }));
+    } else if (type === "checkbox" && name === "equipment") {
+      // FIX: use name === "equipment" instead of !name — explicit and safe
       setFormData(prev => ({
         ...prev,
-        equipment: checked ? [...prev.equipment, val] : prev.equipment.filter(i => i !== val)
+        equipment: checked
+          ? [...prev.equipment, value]
+          : prev.equipment.filter(i => i !== value)
       }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
@@ -465,76 +486,24 @@ export default function WizardStep() {
 
   const go = (n: number) => router.push(`/step/${n}`);
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    // Cycle through loading messages
-    const loadingSteps = [
-      "Analyzing your profile...",
-      "Building your 4-week plan...",
-      "Calculating nutrition targets...",
-      "Preparing your PDF...",
-    ];
-    let stepIdx = 0;
-    setLoadingMsg(loadingSteps[0]);
-    const msgInterval = setInterval(() => {
-      stepIdx = (stepIdx + 1) % loadingSteps.length;
-      setLoadingMsg(loadingSteps[stepIdx]);
-    }, 2200);
-
-    try {
-      const res = await fetch("/api/generate-plan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          want: { pdf: want.pdf, email: want.email }
-        })
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        // Fix: backend now returns object for PDF usage, but frontend needs string for display
-        let displayPlan = "";
-        const p = data.plan;
-
-        if (typeof p === 'object' && p !== null) {
-          // Reconstruct readable string from object
-          displayPlan = `${p.title || "Your Fitness Plan"}\n\n${p.introduction || ""}\n\n`;
-
-          if (Array.isArray(p.weeks)) {
-            displayPlan += p.weeks.map((w: any, i: number) =>
-              `${w.weekTitle || `Week ${i + 1}`}\n` +
-              (w.days ? w.days.map((d: any) => `  ${d.dayTitle}: ${d.focus}\n  Workout: ${d.workout}\n`).join('\n') : '')
-            ).join('\n');
-          }
-        } else {
-          displayPlan = p || "Your plan was generated and sent!";
-        }
-
-        setResult({
-          success: true,
-          plan: displayPlan,
-          pdfUrl: data.pdfUrl,
-          emailError: data.emailError
-        });
-
-        localStorage.removeItem("fitnessWizard2025");
-        window.dispatchEvent(new CustomEvent("fitness-success"));
-      } else {
-        alert("Error: " + (data.error || "Something went wrong"));
+  // FIX: validate name + email before leaving step 1, and clear errors on valid advance
+  const goNext = () => {
+    if (index === 0) {
+      const newErrors: Record<string, string> = {};
+      if (!formData.name.trim()) newErrors.name = "Name is required";
+      if (!formData.email.trim()) newErrors.email = "Email is required";
+      if (Object.keys(newErrors).length) {
+        setErrors(newErrors);
+        return;
       }
-    } catch (err) {
-      console.error(err);
-      alert("Failed to connect. Is your backend running?");
-    } finally {
-      clearInterval(msgInterval);
-      setLoadingMsg("");
-      setLoading(false);
     }
+    setErrors({});
+    go(step + 1);
   };
+
+  // FIX: removed submit() function and want/setWant state — dead code.
+  // All plan actions go through handleSample / handleCheckout directly.
+  // The form's onSubmit is set to a no-op to prevent accidental native submission.
 
   const handleSample = async () => {
     // Layer 2: cookie check
@@ -580,9 +549,11 @@ export default function WizardStep() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      // Set abused flags
+      // Set abuse-prevention flags
       localStorage.setItem("ramafit_sampled", "1");
-      setResult({ success: true, pdfUrl: url });
+      // FIX: pass pdfUrl as null — blob was already revoked above so storing the URL
+      // would produce a broken download link in the success card
+      setResult({ success: true, pdfUrl: null });
     } catch (err) {
       console.error(err);
       alert("Connection failed. Please try again.");
@@ -648,8 +619,10 @@ export default function WizardStep() {
               ))}
             </div>
 
-            <form onSubmit={submit} className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl p-4 md:p-12" key={step} >
-              {sections[index].fields(formData, handleChange, errors, bmi, want, setWant, result, formData)}
+            {/* FIX: onSubmit is a no-op — actual actions go through handleSample/handleCheckout */}
+            <form onSubmit={(e) => e.preventDefault()} className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl p-4 md:p-12" key={step}>
+              {/* FIX: removed want/setWant from fields() call — signature no longer includes them */}
+              {sections[index].fields(formData, handleChange, errors, bmi, result, formData)}
               {index === sections.length - 1 ? (
                 <div className="flex flex-col gap-4 mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
                   <div className="flex justify-between items-center w-full">
@@ -710,7 +683,8 @@ export default function WizardStep() {
                     className="px-5 py-3 md:px-8 md:py-4 bg-gray-100 dark:bg-gray-800 rounded-xl font-bold disabled:opacity-50">
                     ← Back
                   </button>
-                  <button type="button" onClick={() => go(step + 1)}
+                  {/* FIX: onClick now calls goNext() instead of go(step+1) — validates step 1 before advancing */}
+                  <button type="button" onClick={goNext}
                     className="px-6 py-3 md:px-12 md:py-5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-lg md:text-xl font-bold rounded-2xl shadow-2xl hover:shadow-purple-500/50 transition transform hover:scale-105">
                     Next →
                   </button>
@@ -735,7 +709,7 @@ export default function WizardStep() {
             </footer>
           </div>
         </div>
-      </div >
-    </div >
+      </div>
+    </div>
   );
 }
