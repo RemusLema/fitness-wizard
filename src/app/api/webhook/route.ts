@@ -1,6 +1,8 @@
 // src/app/api/webhook/route.ts — Lemon Squeezy webhook handler
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
+import { waitUntil } from "@vercel/functions";
+import { generateAndEmailPlan } from "@/lib/services/planService";
 
 function verifySignature(payload: string, signature: string, secret: string): boolean {
     const hmac = crypto.createHmac("sha256", secret);
@@ -87,36 +89,20 @@ export async function POST(req: NextRequest) {
 
         if (formData.name && formData.email) {
             try {
-                const baseUrl = process.env.VERCEL_URL 
-                    ? `https://${process.env.VERCEL_URL}` 
-                    : process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-                const internalSecret = process.env.INTERNAL_API_SECRET || "";
-                console.log("🔔 Webhook: Calling generate-plan at", `${baseUrl}/api/generate-plan`);
-
-                const genRes = await fetch(`${baseUrl}/api/generate-plan`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "x-internal-secret": internalSecret,
-                    },
-                    body: JSON.stringify({
+                console.log("🔔 Webhook: Triggering generateAndEmailPlan internally...");
+                
+                // Use waitUntil to tell Vercel to keep this function alive until generation finishes
+                waitUntil(
+                    generateAndEmailPlan({
                         ...formData,
                         tier,
                         want: { email: true, pdf: true },
-                    }),
-                });
-
-                const genStatus = genRes.status;
-                const genBody = await genRes.text();
-                console.log("🔔 Webhook: generate-plan response:", genStatus, genBody.slice(0, 200));
-
-                if (genStatus === 200) {
-                    console.log("✅ Plan generation triggered via webhook for:", formData.name);
-                } else {
-                    console.error("❌ Webhook: generate-plan failed with status", genStatus, genBody.slice(0, 500));
-                }
+                    }).catch((err: any) => {
+                        console.error("❌ Webhook: generateAndEmailPlan background error:", err);
+                    })
+                );
             } catch (err: any) {
-                console.error("❌ Webhook: generate-plan fetch error:", err.message);
+                console.error("❌ Webhook: generateAndEmailPlan trigger error:", err);
             }
         } else {
             console.error("❌ Webhook: Missing name or email in custom_data. name:", formData.name, "email:", formData.email);
