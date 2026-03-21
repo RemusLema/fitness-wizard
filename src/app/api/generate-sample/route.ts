@@ -201,46 +201,55 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
         }
 
-        // ── Layer 0: Turnstile CAPTCHA verification ─────────────────────────────
-        const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
-        const { turnstileToken } = body;
-        if (turnstileSecret && turnstileSecret !== "REPLACE_ME") {
-            if (!turnstileToken) {
-                return NextResponse.json({ error: "CAPTCHA verification required" }, { status: 400 });
-            }
-            const verifyRes = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: `secret=${turnstileSecret}&response=${turnstileToken}`,
-            });
-            const verifyData = await verifyRes.json();
-            if (!verifyData.success) {
-                logSecurityEvent("captcha_failed", req);
-                return NextResponse.json({ error: "CAPTCHA verification failed" }, { status: 403 });
-            }
-        }
+        const isSuccessPreview = body.isSuccessPreview === true;
 
-        // ── Layer 1: IP rate limit (max 2 per IP per 24h) ─────────────────────────
-        const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-            req.headers.get("x-real-ip") || "unknown";
-        const ipKey = `ratelimit:sample:${ip}`;
-        const ipCount = await kvGet(ipKey);
-        if (ipCount && parseInt(ipCount) >= 2) {
-            return NextResponse.json(
-                { error: "Too many sample requests from your location. Please try again tomorrow or upgrade for your full plan." },
-                { status: 429 }
-            );
-        }
+        // ── Layer 0-2: Security & Rate Limiting (Skipped for Paid Previews) ────────
+        let emailKey = "";
+        let ipKey = "";
+        let ipCount: string | null = null;
+        
+        if (!isSuccessPreview) {
+            // Layer 0: Turnstile CAPTCHA verification
+            const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
+            const { turnstileToken } = body;
+            if (turnstileSecret && turnstileSecret !== "REPLACE_ME") {
+                if (!turnstileToken) {
+                    return NextResponse.json({ error: "CAPTCHA verification required" }, { status: 400 });
+                }
+                const verifyRes = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: `secret=${turnstileSecret}&response=${turnstileToken}`,
+                });
+                const verifyData = await verifyRes.json();
+                if (!verifyData.success) {
+                    logSecurityEvent("captcha_failed", req);
+                    return NextResponse.json({ error: "CAPTCHA verification failed" }, { status: 403 });
+                }
+            }
 
-        // ── Layer 2: Email hash check ──────────────────────────────────────────────
-        const emailHash = hashEmail(email);
-        const emailKey = `sample:email:${emailHash}`;
-        const emailUsed = await kvGet(emailKey);
-        if (emailUsed) {
-            return NextResponse.json(
-                { error: "A free sample has already been sent to this email. Upgrade to get your full 4-week plan!" },
-                { status: 429 }
-            );
+            // Layer 1: IP rate limit
+            const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+                req.headers.get("x-real-ip") || "unknown";
+            ipKey = `ratelimit:sample:${ip}`;
+            ipCount = await kvGet(ipKey);
+            if (ipCount && parseInt(ipCount) >= 2) {
+                return NextResponse.json(
+                    { error: "Too many sample requests from your location. Please try again tomorrow or upgrade for your full plan." },
+                    { status: 429 }
+                );
+            }
+
+            // Layer 2: Email hash check
+            const emailHash = hashEmail(email);
+            emailKey = `sample:email:${emailHash}`;
+            const emailUsed = await kvGet(emailKey);
+            if (emailUsed) {
+                return NextResponse.json(
+                    { error: "A free sample has already been sent to this email. Upgrade to get your full 4-week plan!" },
+                    { status: 429 }
+                );
+            }
         }
 
         // ── AI: Generate Week 1 only ───────────────────────────────────────────────
@@ -286,15 +295,22 @@ ${buildLocalFoodPromptBlock(localFoods)}
 
         const week = stripEmojis(JSON.parse(aiText));
 
+        // ── Return JSON directly for Paid In-Browser Preview ──────────────────────
+        if (isSuccessPreview) {
+            return NextResponse.json({ success: true, plan: week, isPreview: true });
+        }
+
         // ── Render PDF ─────────────────────────────────────────────────────────────
         const pdfElement = createElement(SamplePDF, { name, goal, week });
         const pdfBlob = await pdf(pdfElement as any).toBlob();
         const pdfBuffer = Buffer.from(await pdfBlob.arrayBuffer());
 
         // ── Write KV records ───────────────────────────────────────────────────────
-        await kvSet(emailKey, "1"); // permanent — email never gets another sample
-        const newCount = ipCount ? parseInt(ipCount) + 1 : 1;
-        await kvSet(ipKey, String(newCount), { ex: 86400 }); // 24h TTL
+        if (!isSuccessPreview && emailKey && ipKey) {
+            await kvSet(emailKey, "1"); // permanent — email never gets another sample
+            const newCount = ipCount ? parseInt(ipCount) + 1 : 1;
+            await kvSet(ipKey, String(newCount), { ex: 86400 }); // 24h TTL
+        }
 
         // ── Return PDF + set cookie ────────────────────────────────────────────────
         const response = new NextResponse(pdfBuffer, {
