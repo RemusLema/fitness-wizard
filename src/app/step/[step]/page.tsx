@@ -55,6 +55,11 @@ const sections: Section[] = [
     icon: <User className="w-12 h-12 text-purple-600" />,
     fields: (data, onChange, errors, bmi) => (
       <div className="space-y-8">
+        <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl border border-purple-100 dark:border-purple-800 text-center shadow-inner">
+          <p className="text-purple-700 dark:text-purple-300 font-bold italic text-lg tracking-wide">
+            🇷🇼 Murakaza neza kuri RamaFit!
+          </p>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">Full Name *</label>

@@ -70,6 +70,7 @@ export default function ActualWeek1Preview({ plan }: { plan: any }) {
                                 </ul>
                                 {day.trainerNote && (
                                     <div className="mt-3 p-3 bg-purple-50/50 dark:bg-purple-900/10 rounded-xl italic text-xs text-purple-700 dark:text-purple-300 print:bg-gray-100 print:text-gray-800">
+                                        <div className="font-bold mb-1 opacity-80 not-italic">Komeza — Uzagera aho ujiye!</div>
                                         💡 {day.trainerNote}
                                     </div>
                                 )}

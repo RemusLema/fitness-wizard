@@ -693,7 +693,7 @@ const FitnessPDF = ({ data, plan, isMobile = false }: { data: any; plan: any; is
                           {/* Trainer note */}
                           {trainerNote && (
                             <View style={styles.trainerNoteBox}>
-                              <Text style={styles.trainerNoteLabel}>Trainer Note</Text>
+                              <Text style={styles.trainerNoteLabel}>Komeza — Uzagera aho ujiye!</Text>
                               <Text style={styles.trainerNoteText}>{trainerNote}</Text>
                             </View>
                           )}
@@ -936,7 +936,7 @@ CRITICAL FORMATTING INSTRUCTIONS:
           await resend.emails.send({
             from: "Fitness Wizard <hello@ramafit.xyz>",
             to: formData.email,
-            subject: `Your Personalized ${durationText} Fitness Plan 🚀`,
+            subject: `Plani yawe ya RamaFit iri hano 🇷🇼 — ${durationText} Fitness Plan`,
             html: `
               <div style="font-family: sans-serif; color: #333;">
                 <h1>Your Plan is Ready! 🎉</h1>

@@ -19,7 +19,7 @@ const features = [
   {
     icon: "🍽️",
     title: "Nutrition Included",
-    desc: "Daily meal plans with macros, calories, and snack suggestions — not just workouts.",
+    desc: "Daily meal plans built exactly for Rwandan foods, with macros, calories, and snack suggestions.",
   },
   {
     icon: "📄",
@@ -28,8 +28,8 @@ const features = [
   },
   {
     icon: "🏋️",
-    title: "Any Equipment",
-    desc: "Bodyweight, dumbbells, gym, resistance bands — we adapt to what you have.",
+    title: "Any Environment",
+    desc: "Bodyweight, gym, or outdoor running on Kigali hills — we adapt to your location and equipment.",
   },
   {
     icon: "📈",
@@ -42,6 +42,7 @@ const tiers = [
   {
     name: "Starter",
     price: "$6.99",
+    rwf: "(~8,900 RWF)",
     period: "one-time",
     highlight: false,
     badge: "",
@@ -56,6 +57,7 @@ const tiers = [
   {
     name: "Transform",
     price: "$14.99",
+    rwf: "(~19,000 RWF)",
     period: "one-time",
     highlight: true,
     badge: "MOST POPULAR",
@@ -70,6 +72,7 @@ const tiers = [
   {
     name: "Elite",
     price: "$29.99",
+    rwf: "(~38,500 RWF)",
     period: "one-time",
     highlight: false,
     badge: "BEST VALUE",
@@ -143,6 +146,9 @@ export default function LandingPage() {
             <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
               RamaFit
             </span>
+            <span className="ml-4 hidden lg:inline-block text-xs text-purple-300/80 italic border-l border-purple-500/30 pl-4 py-1">
+              Ubuzima bw'umwimerere, ibiryo by'iwacu
+            </span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm text-gray-400">
             <a href="#features" className="hover:text-white transition">Features</a>
@@ -163,8 +169,8 @@ export default function LandingPage() {
         {/* Background image with overlay */}
         <div className="absolute inset-0 z-0">
           <Image
-            src="/hero.png"
-            alt="Fitness training"
+            src="/hero-rwanda.png"
+            alt="Fitness training in Rwanda"
             fill
             className="object-cover"
             priority
@@ -183,13 +189,14 @@ export default function LandingPage() {
               AI-Powered Fitness Plans
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-black leading-[1.05] mb-6">
-              Your perfect plan.
-              <br />
+            <h1 className="text-5xl md:text-7xl font-black leading-[1.05] mb-3">
+              AI Fitness Plans<br />
               <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">
-                Built by AI.
+                Built for Rwanda 🇷🇼
               </span>
             </h1>
+            
+            <p className="text-purple-300/90 italic text-xl mb-6 font-medium">Ubuzima bw'umwimerere, ibiryo by'Iwacu</p>
 
             <p className="text-lg md:text-xl text-gray-400 max-w-lg mb-10 leading-relaxed">
               A complete 4-week training and nutrition plan — personalized to your goals, level, and equipment.
@@ -201,7 +208,7 @@ export default function LandingPage() {
                 href="/step/1"
                 className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-lg rounded-2xl shadow-2xl shadow-purple-500/30 hover:shadow-purple-500/50 transition-all transform hover:scale-[1.02]"
               >
-                Start Your Plan
+                Start Now (Tangira Ubu)
                 <span className="group-hover:translate-x-1 transition-transform">→</span>
               </Link>
               <a
@@ -231,20 +238,20 @@ export default function LandingPage() {
       <section className="py-8 border-y border-white/5 bg-gray-900/50">
         <div className="max-w-6xl mx-auto px-6 flex flex-wrap items-center justify-center gap-8 md:gap-16 text-gray-500 text-sm">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">🧬</span>
-            <span>Powered by <strong className="text-gray-300">GPT-4o</strong></span>
+            <span className="text-2xl">🇷🇼</span>
+            <span><strong className="text-gray-300">Built for Rwanda</strong></span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">🥗</span>
+            <span><strong className="text-gray-300">Local food plans</strong></span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-2xl">⚡</span>
-            <span><strong className="text-gray-300">60-second</strong> delivery</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">💳</span>
-            <span><strong className="text-gray-300">One-time</strong> purchase</span>
+            <span><strong className="text-gray-300">Instant delivery</strong></span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-2xl">🔒</span>
-            <span>Secure payments via <strong className="text-gray-300">Lemon Squeezy</strong></span>
+            <span><strong className="text-gray-300">Secure checkout</strong></span>
           </div>
         </div>
       </section>
@@ -279,8 +286,9 @@ export default function LandingPage() {
               {
                 step: "03",
                 icon: "📧",
-                title: "Get Your PDF",
-                desc: "Download your professional PDF instantly and receive it by email. Start training today.",
+                title: "Get Your Plan",
+                desc: "View Week 1 instantly in your browser. Full PDF in your inbox within 5 minutes.",
+                subtext: "🥗 Meal plans include Rwandan foods like ibishyimbo, ibirayi, and isombe."
               },
             ].map((item, i) => (
               <div key={i} className="relative group">
@@ -289,6 +297,11 @@ export default function LandingPage() {
                   <div className="text-4xl mb-4">{item.icon}</div>
                   <h3 className="text-xl font-bold mb-2">{item.title}</h3>
                   <p className="text-gray-500 leading-relaxed">{item.desc}</p>
+                  {(item as any).subtext && (
+                    <p className="mt-4 text-sm text-green-400 italic bg-green-900/20 p-3 rounded-xl border border-green-800/30">
+                      {(item as any).subtext}
+                    </p>
+                  )}
                 </div>
                 {i < 2 && (
                   <div className="hidden md:block absolute top-1/2 -right-4 text-gray-700 text-2xl">→</div>
@@ -363,9 +376,12 @@ export default function LandingPage() {
                 )}
 
                 <h3 className="text-xl font-bold mb-1">{tier.name}</h3>
-                <div className="flex items-baseline gap-1 mb-6">
-                  <span className="text-4xl font-black">{tier.price}</span>
-                  <span className="text-gray-500 text-sm">/{tier.period}</span>
+                <div className="flex flex-col mb-6">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-black">{tier.price}</span>
+                    <span className="text-gray-500 text-sm">/{tier.period}</span>
+                  </div>
+                  <span className="text-green-400 font-medium text-sm mt-1">{(tier as any).rwf}</span>
                 </div>
 
                 <ul className="space-y-3 mb-8 flex-1">
@@ -384,7 +400,7 @@ export default function LandingPage() {
                       : "bg-white/5 border border-white/10 text-white hover:bg-white/10"
                     }`}
                 >
-                  Get {tier.name}
+                  Get {tier.name} (Tangira Ubu)
                 </Link>
               </div>
             ))}
@@ -490,7 +506,7 @@ export default function LandingPage() {
             href="/step/1"
             className="inline-flex items-center justify-center gap-2 px-10 py-5 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-xl rounded-2xl shadow-2xl shadow-purple-500/30 hover:shadow-purple-500/50 transition-all transform hover:scale-[1.02]"
           >
-            Build My Plan Now →
+            Build My Plan Now (Tangira Ubu) →
           </Link>
         </div>
       </section>
@@ -505,6 +521,9 @@ export default function LandingPage() {
             </div>
 
             <div className="flex items-center gap-6 text-sm text-gray-600">
+              <span className="flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-gray-400 font-medium font-mono text-xs">
+                <span>🇷🇼</span> Proudly built in Rwanda
+              </span>
               <Link href="/privacy" className="hover:text-gray-400 transition">Privacy Policy</Link>
               <Link href="/terms" className="hover:text-gray-400 transition">Terms & Refunds</Link>
               <a href="mailto:hello@ramafit.xyz" className="hover:text-gray-400 transition">Contact</a>
