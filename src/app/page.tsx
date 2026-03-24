@@ -42,7 +42,7 @@ const tiers = [
   {
     name: "Starter",
     price: "$6.99",
-    rwf: "(~8,900 RWF)",
+    rwf: "(~10,000 RWF)",
     period: "one-time",
     highlight: false,
     badge: "",
@@ -57,7 +57,7 @@ const tiers = [
   {
     name: "Transform",
     price: "$14.99",
-    rwf: "(~19,000 RWF)",
+    rwf: "(~21,000 RWF)",
     period: "one-time",
     highlight: true,
     badge: "MOST POPULAR",
@@ -72,7 +72,7 @@ const tiers = [
   {
     name: "Elite",
     price: "$29.99",
-    rwf: "(~38,500 RWF)",
+    rwf: "(~43,000 RWF)",
     period: "one-time",
     highlight: false,
     badge: "BEST VALUE",
