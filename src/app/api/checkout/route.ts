@@ -61,23 +61,38 @@ export async function POST(req: NextRequest) {
 
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
+        // LS requires ALL custom_data values to be plain strings — never arrays or objects
+        // toStr handles: plain string, array, JSON-encoded array string, number, undefined
+        const toStr = (val: unknown): string => {
+            if (val === null || val === undefined) return "";
+            if (Array.isArray(val)) return val.join(",");
+            if (typeof val === "string") {
+                // Guard against JSON-stringified arrays like "[\"ibishyimbo\",\"ibirayi\"]"
+                if (val.startsWith("[")) {
+                    try { const parsed = JSON.parse(val); if (Array.isArray(parsed)) return parsed.join(","); } catch { /* not JSON */ }
+                }
+                return val;
+            }
+            return String(val);
+        };
+
         // Pack formData into custom data for webhook retrieval
-        const customData = {
-            name: formData.name,
-            email: formData.email,
-            goal: formData.goal || "",
-            fitnessLevel: formData.fitnessLevel || "",
-            timeline: formData.timeline || "",
-            tier,
-            dietaryPreference: formData.dietaryPreference || "",
-            eatingStyle: formData.eatingStyle || "",
-            localFoods: Array.isArray(formData.localFoods) ? formData.localFoods.join(",") : "",
-            equipment: Array.isArray(formData.equipment) ? formData.equipment.join(",") : "",
-            waterIntake: formData.waterIntake || "",
-            workoutLocation: formData.workoutLocation || "",
-            intensity: formData.intensity || "",
-            age: formData.age || "",
-            gender: formData.gender || "",
+        const customData: Record<string, string> = {
+            name: toStr(formData.name),
+            email: toStr(formData.email),
+            goal: toStr(formData.goal),
+            fitnessLevel: toStr(formData.fitnessLevel),
+            timeline: toStr(formData.timeline),
+            tier: toStr(tier),
+            dietaryPreference: toStr(formData.dietaryPreference),
+            eatingStyle: toStr(formData.eatingStyle),
+            localFoods: toStr(formData.localFoods),
+            equipment: toStr(formData.equipment),
+            waterIntake: toStr(formData.waterIntake),
+            workoutLocation: toStr(formData.workoutLocation),
+            intensity: toStr(formData.intensity),
+            age: toStr(formData.age),
+            gender: toStr(formData.gender),
         };
 
         const response = await fetch("https://api.lemonsqueezy.com/v1/checkouts", {
