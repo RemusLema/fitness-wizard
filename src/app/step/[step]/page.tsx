@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { User, Target, Salad, Dumbbell, Clock } from 'lucide-react';
 import SamplePlanPreview from '@/components/SamplePlanPreview';
 import { Turnstile } from '@marsidev/react-turnstile';
 import { localFoodOptions } from '@/lib/localFoods';
+import { getGymProfile, PREDEFINED_EQUIPMENT, GymProfile } from '@/lib/gymConfig';
 
 type FormData = {
   name: string;
@@ -44,7 +45,16 @@ type Section = {
     errors: Record<string, string>,
     bmi: number | null,
     result: any,
-    formData: FormData
+    formData: FormData,
+    activeGym?: GymProfile | null,
+    gymState?: {
+      gymMemberId: string;
+      setGymMemberId: (val: string) => void;
+      memberVerified: boolean;
+      verifyingMember: boolean;
+      verificationError: string;
+      handleVerifyMember: () => Promise<void>;
+    }
   ) => React.ReactNode;
 };
 
@@ -277,129 +287,206 @@ const sections: Section[] = [
     title: "Choose Your Plan",
     description: "Select the option that fits your goals",
     icon: <Clock className="w-12 h-12 text-yellow-500" />,
-    // FIX: removed want/setWant params from signature — they were dead code
-    fields: (data, onChange, _errors, _bmi, result, formData) => (
-      <div className="space-y-10">
-        {/* Equipment */}
-        <div>
-          <label className="block text-lg font-bold mb-4">Available Equipment *</label>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {["Bodyweight Only", "Dumbbells", "Resistance Bands", "Kettlebells", "Pull-up Bar", "Gym Access"].map(item => (
-              <label key={item} className="flex items-center gap-3 p-3 border rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition">
-                {/* FIX: added name="equipment" so handleChange identifies these correctly */}
-                <input type="checkbox" name="equipment" value={item} checked={(data.equipment ?? []).includes(item)} onChange={onChange} className="w-5 h-5 text-purple-600 rounded" />
-                <span className="text-sm font-medium">{item}</span>
-              </label>
-            ))}
-          </div>
-        </div>
+    fields: (data, onChange, _errors, _bmi, result, formData, activeGym, gymState) => {
+      // Predefined B2B equipment list
+      const equipmentOptions = activeGym 
+        ? activeGym.equipmentList 
+        : ["Bodyweight Only", "Dumbbells", "Resistance Bands", "Kettlebells", "Pull-up Bar", "Gym Access"];
 
-        {/* Success state — shown after free sample generation */}
-        {result?.success && (
-          <div className="p-8 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-2xl border-2 border-emerald-300 dark:border-emerald-700 text-center">
-            <h3 className="text-2xl font-bold mb-4">🎉 Your Sample Plan is Ready!</h3>
-            {/* FIX: pdfUrl is now null after sample download (blob was revoked), so this
-                block correctly won't render a broken link. The download already happened. */}
-            {result.pdfUrl && (
-              <a href={result.pdfUrl} download className="inline-block px-10 py-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xl font-bold rounded-2xl shadow transition mb-6">
-                ↓ Download Your Week 1 Sample
-              </a>
-            )}
-            <div className="mt-4 p-4 bg-purple-50 dark:bg-purple-900/30 rounded-xl border border-purple-200 dark:border-purple-700">
-              <p className="text-sm font-semibold text-purple-700 dark:text-purple-300">
-                Want Weeks 2–4 + macros, trainer notes & email delivery? Upgrade below. 👇
+      const tiersList = [
+        {
+          key: "starter",
+          name: "Starter",
+          price: "$6.99",
+          period: "one-time",
+          badge: "MOST POPULAR",
+          features: [
+            "Complete 4-week plan (28 days)",
+            "Daily workouts with sets & reps",
+            "Daily meal plans with macros",
+            "Trainer coaching notes",
+            "PDF delivered to your email"
+          ]
+        },
+        {
+          key: "transform",
+          name: "Transform",
+          price: "$14.99",
+          period: "one-time",
+          badge: "",
+          features: [
+            "Full 4-week starter plan (PDF)",
+            "Months 2–3: Progression Roadmap PDF",
+            "Weekly workout & nutrition adjustments",
+            "Phase goals & trainer checkpoints",
+            "Both PDFs delivered to your email"
+          ]
+        },
+        {
+          key: "elite",
+          name: "Elite",
+          price: "$29.99",
+          period: "one-time",
+          badge: "BEST VALUE",
+          features: [
+            "Full 4-week starter plan (PDF)",
+            "Months 2–6: Periodized Roadmap PDF",
+            "3 training phases: Foundation → Peak",
+            "Specific exercise progressions per week",
+            "Both PDFs delivered to your email",
+            "Best value for serious results"
+          ]
+        }
+      ];
+
+      return (
+        <div className="space-y-10">
+          {/* Equipment */}
+          <div>
+            <label className="block text-lg font-bold mb-2">
+              {activeGym ? `Available Equipment at ${activeGym.name} *` : "Available Equipment *"}
+            </label>
+            {activeGym && (
+              <p className="text-xs text-purple-600 dark:text-purple-400 font-medium mb-4">
+                ✨ Pre-loaded with standard equipment available at WAKA/Cali Kigali facility.
               </p>
+            )}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {equipmentOptions.map(item => (
+                <label key={item} className="flex items-center gap-3 p-3 border rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                  <input type="checkbox" name="equipment" value={item} checked={(data.equipment ?? []).includes(item)} onChange={onChange} className="w-5 h-5 text-purple-600 rounded" />
+                  <span className="text-sm font-medium">{item}</span>
+                </label>
+              ))}
             </div>
           </div>
-        )}
 
-        {/* Tier cards */}
-        <div>
-          <h3 className="text-2xl font-bold text-center mb-2">Choose Your Plan</h3>
-          <p className="text-center text-gray-500 dark:text-gray-400 text-sm mb-8">
-            All plans are AI-generated specifically for your profile
-          </p>
-          <div className="grid md:grid-cols-2 gap-5">
-
-            {/* Free Sample */}
-            <div className="relative border-2 border-gray-200 dark:border-gray-700 rounded-2xl p-6 flex flex-col gap-4 hover:border-purple-300 transition">
-              <div>
-                <span className="text-xs font-bold uppercase text-gray-400 tracking-widest">Free</span>
-                <h4 className="text-xl font-bold mt-1">1-Week Sample</h4>
-                <p className="text-3xl font-black mt-2">$0</p>
+          {/* B2B Gym Member Verification Portal */}
+          {activeGym && gymState && (
+            <div className="p-6 rounded-2xl bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 space-y-4">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">🔑</span>
+                <h4 className="text-lg font-bold" style={{ color: activeGym.primaryColor }}>
+                  {activeGym.name} Member Verification
+                </h4>
               </div>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300 flex-1">
-                <li className="flex gap-2">✓ Week 1 of your plan (7 days)</li>
-                <li className="flex gap-2">✓ Tailored to your goal & equipment</li>
-                <li className="flex gap-2">✓ PDF download, instant</li>
-                <li className="flex gap-2 text-gray-400">✗ No email delivery</li>
-                <li className="flex gap-2 text-gray-400">✗ Weeks 2–4 locked</li>
-                <li className="flex gap-2 text-gray-400">✗ No macros or trainer notes</li>
-              </ul>
-              <p className="text-xs text-gray-400 italic">One free sample per person</p>
+              {gymState.memberVerified ? (
+                <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-800 dark:text-emerald-400">
+                  <p className="font-semibold text-sm flex items-center gap-2">
+                    <span>✓</span> Active Membership Verified!
+                  </p>
+                  <p className="text-xs mt-1 text-gray-600 dark:text-gray-400">
+                    Your {activeGym.name} member profile is active. Standard fees are sponsored. Select your preferred tier below to generate your plan instantly.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Enter your registered member email address or phone number to bypass payment:
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <input
+                      type="text"
+                      value={gymState.gymMemberId}
+                      onChange={(e) => gymState.setGymMemberId(e.target.value)}
+                      placeholder="e.g. waka@test.com or 0788123456"
+                      className="flex-1 p-3 border rounded-xl bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2"
+                      style={{ '--tw-ring-color': activeGym.primaryColor } as any}
+                    />
+                    <button
+                      type="button"
+                      disabled={gymState.verifyingMember}
+                      onClick={gymState.handleVerifyMember}
+                      className="px-6 py-3 font-bold text-white rounded-xl transition duration-200 disabled:opacity-50"
+                      style={{ background: `linear-gradient(135deg, ${activeGym.primaryColor} 0%, ${activeGym.secondaryColor} 100%)` }}
+                    >
+                      {gymState.verifyingMember ? "Verifying..." : "Verify Membership"}
+                    </button>
+                  </div>
+                  {gymState.verificationError && (
+                    <p className="text-red-500 text-sm font-semibold">{gymState.verificationError}</p>
+                  )}
+                  {process.env.NODE_ENV === "development" && (
+                    <p className="text-xs text-gray-400">
+                      💡 Hint: Use <code className="bg-white/10 px-1 py-0.5 rounded">waka@test.com</code> or <code className="bg-white/10 px-1 py-0.5 rounded">0788123456</code> to test during development.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
+          )}
 
-            {/* Starter */}
-            <div className="relative border-2 border-purple-500 rounded-2xl p-6 flex flex-col gap-4 shadow-lg shadow-purple-500/10">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-bold px-4 py-1 rounded-full">MOST POPULAR</span>
+          {/* Success state — shown after free sample generation */}
+          {result?.success && (
+            <div className="p-8 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-2xl border-2 border-emerald-300 dark:border-emerald-700 text-center">
+              <h3 className="text-2xl font-bold mb-4">🎉 Your Workout Plan is Ready!</h3>
+              {result.pdfUrl && (
+                <a href={result.pdfUrl} download className="inline-block px-10 py-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xl font-bold rounded-2xl shadow transition mb-6">
+                  ↓ Download Plan PDF
+                </a>
+              )}
+              <div className="mt-4 p-4 bg-purple-50 dark:bg-purple-900/30 rounded-xl border border-purple-200 dark:border-purple-700">
+                <p className="text-sm font-semibold text-purple-700 dark:text-purple-300">
+                  Your full multi-week training progression is successfully built and generated.
+                </p>
               </div>
-              <div>
-                <span className="text-xs font-bold uppercase text-purple-400 tracking-widest">Starter</span>
-                <h4 className="text-xl font-bold mt-1">4-Week Full Plan</h4>
-                <p className="text-3xl font-black mt-2">$6.99 <span className="text-sm font-normal text-gray-400">one-time</span></p>
-              </div>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300 flex-1">
-                <li className="flex gap-2">✓ Complete 4-week plan (28 days)</li>
-                <li className="flex gap-2">✓ Daily workouts with sets & reps</li>
-                <li className="flex gap-2">✓ Daily meal plans with macros</li>
-                <li className="flex gap-2">✓ Trainer coaching notes</li>
-                <li className="flex gap-2">✓ PDF delivered to your email</li>
-              </ul>
             </div>
+          )}
 
-            {/* Transform */}
-            <div className="relative border-2 border-blue-500 rounded-2xl p-6 flex flex-col gap-4 hover:shadow-lg hover:shadow-blue-500/10 transition">
-              <div>
-                <span className="text-xs font-bold uppercase text-blue-400 tracking-widest">Transform</span>
-                <h4 className="text-xl font-bold mt-1">3-Month Transformation</h4>
-                <p className="text-3xl font-black mt-2">$14.99 <span className="text-sm font-normal text-gray-400">one-time</span></p>
-              </div>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300 flex-1">
-                <li className="flex gap-2">✓ Full 4-week starter plan (PDF)</li>
-                <li className="flex gap-2">✓ Months 2–3: Progression Roadmap PDF</li>
-                <li className="flex gap-2">✓ Weekly workout & nutrition adjustments</li>
-                <li className="flex gap-2">✓ Phase goals & trainer checkpoints</li>
-                <li className="flex gap-2">✓ Both PDFs delivered to your email</li>
-              </ul>
-            </div>
-
-            {/* Elite */}
-            <div className="relative border-2 border-amber-500 rounded-2xl p-6 flex flex-col gap-4 hover:shadow-lg hover:shadow-amber-500/10 transition">
-              <div>
-                <span className="text-xs font-bold uppercase text-amber-500 tracking-widest">Elite</span>
-                <h4 className="text-xl font-bold mt-1">6-Month Journey</h4>
-                <p className="text-3xl font-black mt-2">$29.99 <span className="text-sm font-normal text-gray-400">one-time</span></p>
-              </div>
-              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300 flex-1">
-                <li className="flex gap-2">✓ Full 4-week starter plan (PDF)</li>
-                <li className="flex gap-2">✓ Months 2–6: Periodized Roadmap PDF</li>
-                <li className="flex gap-2">✓ 3 training phases: Foundation → Peak</li>
-                <li className="flex gap-2">✓ Specific exercise progressions per week</li>
-                <li className="flex gap-2">✓ Both PDFs delivered to your email</li>
-                <li className="flex gap-2 font-semibold text-amber-600">→ Best value for serious results</li>
-              </ul>
+          {/* Tier cards */}
+          <div>
+            <h3 className="text-2xl font-bold text-center mb-2">Choose Your Plan</h3>
+            <p className="text-center text-gray-500 dark:text-gray-400 text-sm mb-8">
+              All plans are AI-generated specifically for your profile
+            </p>
+            <div className="grid md:grid-cols-3 gap-5">
+              {tiersList.map(tier => {
+                const isPromo = activeGym && gymState?.memberVerified;
+                return (
+                  <div key={tier.key} className={`relative border-2 rounded-2xl p-6 flex flex-col gap-4 transition bg-white dark:bg-gray-900 ${
+                    tier.badge ? 'border-purple-500 shadow-lg shadow-purple-500/10' : 'border-gray-200 dark:border-gray-700'
+                  }`}>
+                    {tier.badge && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                        <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-bold px-4 py-1 rounded-full">{tier.badge}</span>
+                      </div>
+                    )}
+                    <div>
+                      <span className="text-xs font-bold uppercase text-purple-400 tracking-widest">{tier.name}</span>
+                      <h4 className="text-xl font-bold mt-1">{tier.name} Plan</h4>
+                      <p className="text-3xl font-black mt-2">
+                        {isPromo ? (
+                          <>
+                            <span className="line-through text-gray-400 text-lg mr-2">{tier.price}</span>
+                            <span className="text-emerald-500">FREE</span>
+                          </>
+                        ) : (
+                          <>
+                            {tier.price} <span className="text-sm font-normal text-gray-400">one-time</span>
+                          </>
+                        )}
+                      </p>
+                    </div>
+                    <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300 flex-1">
+                      {tier.features.map((f, j) => (
+                        <li key={j} className="flex gap-2">✓ {f}</li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
-      </div>
-    )
+      );
+    }
   }
 ];
 
 export default function WizardStep() {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const step = Number(pathname.split("/").pop()) || 1;
   const index = step - 1;
 
@@ -421,26 +508,55 @@ export default function WizardStep() {
   const [mounted, setMounted] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
-  // Handle hydration mismatch
+  // B2B Gym states
+  const [activeGym, setActiveGym] = useState<GymProfile | null>(null);
+  const [gymMemberId, setGymMemberId] = useState("");
+  const [memberVerified, setMemberVerified] = useState(false);
+  const [verifyingMember, setVerifyingMember] = useState(false);
+  const [verificationError, setVerificationError] = useState("");
+
+  // Handle hydration mismatch and B2B gym routing load
   useEffect(() => {
     setMounted(true);
     // Dark mode preference
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     setDarkMode(prefersDark);
 
-    // FIX: spread defaults first so new fields (localFoods, eatingStyle, etc.) are always
-    // present even if localStorage has an older saved object that's missing them
     const saved = localStorage.getItem("fitnessWizard2025");
+    let loadedData: any = {};
     if (saved) {
-      const parsed = JSON.parse(saved);
-      setFormData(prev => ({
-        ...prev,
-        ...parsed,
-        localFoods: parsed.localFoods ?? [],
-        equipment:  parsed.equipment  ?? [],
-      }));
+      loadedData = JSON.parse(saved);
     }
-  }, []);
+
+    // B2B Gym Slug Resolution
+    const gymQuery = searchParams.get("gym");
+    const savedGym = localStorage.getItem("ramafit_active_gym");
+    const slug = gymQuery || savedGym;
+    let profile: GymProfile | null = null;
+    
+    if (slug) {
+      const p = getGymProfile(slug);
+      if (p) {
+        profile = p;
+        setActiveGym(p);
+        localStorage.setItem("ramafit_active_gym", slug);
+      }
+    }
+
+    setFormData(prev => {
+      // Pre-populate with gym equipment list if brand new profile in a partner gym context
+      const equipmentInit = profile && (!loadedData.equipment || loadedData.equipment.length === 0)
+        ? profile.equipmentList 
+        : (loadedData.equipment ?? prev.equipment);
+
+      return {
+        ...prev,
+        ...loadedData,
+        localFoods: loadedData.localFoods ?? prev.localFoods,
+        equipment: equipmentInit,
+      };
+    });
+  }, [searchParams]);
 
   // Auto-save
   useEffect(() => {
@@ -600,6 +716,74 @@ export default function WizardStep() {
     }
   };
 
+  const handleVerifyMember = async () => {
+    if (!activeGym) return;
+    if (!gymMemberId.trim()) {
+      setVerificationError("Please enter your member email or phone number");
+      return;
+    }
+    setVerifyingMember(true);
+    setVerificationError("");
+    try {
+      const res = await fetch("/api/verify-member", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gymSlug: activeGym.slug, emailOrPhone: gymMemberId }),
+      });
+      const data = await res.json();
+      if (data.verified) {
+        setMemberVerified(true);
+        // Sync B2B identifier to email if it looks like an email
+        if (gymMemberId.includes("@")) {
+          setFormData(prev => ({ ...prev, email: gymMemberId }));
+        }
+      } else {
+        setVerificationError("Verification failed. Member not found on gym active roster.");
+      }
+    } catch (err) {
+      console.error(err);
+      setVerificationError("Connection error. Please try again.");
+    } finally {
+      setVerifyingMember(false);
+    }
+  };
+
+  const handleB2BCheckout = async (tier: "starter" | "transform" | "elite") => {
+    if (!formData.name || !formData.email) {
+      alert("Please fill in your name and email in step 1 first.");
+      return;
+    }
+    setLoading(true);
+    setLoadingTier(tier);
+    setLoadingMsg("Generating your co-branded gym plan...");
+    try {
+      const res = await fetch("/api/generate-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          ...formData, 
+          tier,
+          gymSlug: activeGym?.slug,
+          memberIdentifier: gymMemberId
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setResult({ success: true, pdfUrl: data.pdfUrl || null });
+        alert(`Success! Your full 4-week ${tier} plan has been generated and emailed to you. You can check your inbox.`);
+      } else {
+        alert(data.error || "Failed to generate your plan. Please try again.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Connection failed. Please try again.");
+    } finally {
+      setLoadingMsg("");
+      setLoading(false);
+      setLoadingTier(null);
+    }
+  };
+
   return (
     <div className={darkMode ? 'dark' : ''}>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-950 dark:via-purple-950 dark:to-pink-950 transition-colors">
@@ -626,8 +810,24 @@ export default function WizardStep() {
 
             {/* FIX: onSubmit is a no-op — actual actions go through handleSample/handleCheckout */}
             <form onSubmit={(e) => e.preventDefault()} className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl p-4 md:p-12" key={step}>
-              {/* FIX: removed want/setWant from fields() call — signature no longer includes them */}
-              {sections[index].fields(formData, handleChange, errors, bmi, result, formData)}
+              {/* Inject activeGym and gymState methods for dynamic co-branded rendering in step fields */}
+              {sections[index].fields(
+                formData, 
+                handleChange, 
+                errors, 
+                bmi, 
+                result, 
+                formData, 
+                activeGym, 
+                {
+                  gymMemberId,
+                  setGymMemberId,
+                  memberVerified,
+                  verifyingMember,
+                  verificationError,
+                  handleVerifyMember
+                }
+              )}
               {index === sections.length - 1 ? (
                 <div className="flex flex-col gap-4 mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
                   <div className="flex justify-between items-center w-full">
@@ -635,7 +835,9 @@ export default function WizardStep() {
                       className="px-5 py-3 md:px-8 md:py-4 bg-gray-100 dark:bg-gray-800 rounded-xl font-bold disabled:opacity-50">
                       ← Back
                     </button>
-                    <p className="text-xs text-gray-400 dark:text-gray-500 text-right">Select a plan to continue</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 text-right">
+                      {activeGym && !memberVerified ? "Verify membership above or choose B2C checkout" : "Select a plan to continue"}
+                    </p>
                   </div>
                   {/* Cloudflare Turnstile CAPTCHA (invisible / managed mode) */}
                   {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY !== "REPLACE_ME" && (
@@ -656,29 +858,44 @@ export default function WizardStep() {
                     >
                       {loadingTier === "sample" ? loadingMsg : "Free Sample"}
                     </button>
+                    
                     <button
                       type="button"
                       disabled={loading}
-                      onClick={() => handleCheckout("starter")}
+                      onClick={() => activeGym && memberVerified ? handleB2BCheckout("starter") : handleCheckout("starter")}
                       className="py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-bold rounded-xl shadow hover:opacity-90 transition disabled:opacity-50"
                     >
-                      {loadingTier === "starter" ? loadingMsg : "Starter — $6.99"}
+                      {loadingTier === "starter" 
+                        ? loadingMsg 
+                        : activeGym && memberVerified 
+                          ? "Starter — FREE" 
+                          : "Starter — $6.99"}
                     </button>
+                    
                     <button
                       type="button"
                       disabled={loading}
-                      onClick={() => handleCheckout("transform")}
+                      onClick={() => activeGym && memberVerified ? handleB2BCheckout("transform") : handleCheckout("transform")}
                       className="py-3 bg-blue-600 text-white text-sm font-bold rounded-xl shadow hover:opacity-90 transition disabled:opacity-50"
                     >
-                      {loadingTier === "transform" ? loadingMsg : "Transform — $14.99"}
+                      {loadingTier === "transform" 
+                        ? loadingMsg 
+                        : activeGym && memberVerified 
+                          ? "Transform — FREE" 
+                          : "Transform — $14.99"}
                     </button>
+                    
                     <button
                       type="button"
                       disabled={loading}
-                      onClick={() => handleCheckout("elite")}
+                      onClick={() => activeGym && memberVerified ? handleB2BCheckout("elite") : handleCheckout("elite")}
                       className="py-3 bg-amber-500 text-white text-sm font-bold rounded-xl shadow hover:opacity-90 transition disabled:opacity-50"
                     >
-                      {loadingTier === "elite" ? loadingMsg : "Elite — $29.99"}
+                      {loadingTier === "elite" 
+                        ? loadingMsg 
+                        : activeGym && memberVerified 
+                          ? "Elite — FREE" 
+                          : "Elite — $29.99"}
                     </button>
                   </div>
                 </div>

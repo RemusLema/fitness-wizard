@@ -6,6 +6,8 @@ import { RoadmapPDF } from "@/lib/RoadmapPDF";
 import { Resend } from "resend";
 import { stripEmojis } from "@/lib/utils";
 import { buildLocalFoodPromptBlock } from "@/lib/localFoods";
+import { getGymProfile } from "@/lib/gymConfig";
+import { logGymPlanGeneration, logGymGoal, getGymEquipment } from "@/lib/redis";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
@@ -539,12 +541,16 @@ const FitnessPDF = ({ data, plan, isMobile = false }: { data: any; plan: any; is
     ? data.equipment.join(", ")
     : "Bodyweight Only";
 
+  const gym = data?.gymSlug ? getGymProfile(data.gymSlug) : null;
+  const headerTitle = gym ? `RamaFit × ${gym.name}` : "Fitness Wizard Plan";
+  const headerStyle = gym ? [styles.header, { backgroundColor: gym.primaryColor }] : styles.header;
+
   return (
     <Document>
       <Page size="A4" orientation={isMobile ? "portrait" : "landscape"} style={styles.page}>
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Fitness Wizard Plan</Text>
+        <View style={headerStyle}>
+          <Text style={styles.headerTitle}>{headerTitle}</Text>
           <Text style={styles.headerSubtitle}>
             Customized for {safeName} • {data.timeline === "1_month"
               ? "Your Complete 4-Week Plan"
@@ -765,6 +771,25 @@ export async function generateAndEmailPlan(body: any) {
 
     console.log("📋 Generating plan for:", formData.name, "| tier:", tier);
 
+    const gymSlug = body.gymSlug ? sanitize(body.gymSlug) : "";
+    const gym = gymSlug ? getGymProfile(gymSlug) : null;
+
+    // Read live equipment from Redis; fall back to gymConfig defaults
+    let gymEquipment: string[] = gym ? gym.equipmentList : [];
+    if (gym) {
+      const redisEquipment = await getGymEquipment(gymSlug).catch(() => null);
+      if (redisEquipment && redisEquipment.length > 0) {
+        gymEquipment = redisEquipment;
+      }
+    }
+
+    const gymConstraint = gym
+      ? `\nSTRICT PARTNER GYM CONSTRAINTS for ${gym.name}:
+- Available Equipment: ${gymEquipment.join(", ")}
+- You MUST ONLY assign exercises that can be executed using the available equipment list above. Do not assign exercises requiring any other machines.
+- Write the "introduction" field co-branded, welcoming them to the custom member program at ${gym.name} in Kigali.`
+      : "";
+
     // Generate AI plan with JSON structure
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -780,7 +805,7 @@ Create a highly detailed, personalized 4-week training + nutrition cycle based o
 - Equipment: ${formData.equipment?.length > 0 ? formData.equipment.join(", ") : "bodyweight"}
 - Diet preference: ${formData.dietaryPreference}
 - Training location: ${formData.workoutLocation || "home"}
-${buildLocalFoodPromptBlock(formData.localFoods || [])}
+${buildLocalFoodPromptBlock(formData.localFoods || [])}${gymConstraint}
 
 RULES:
 - If timeline is "1_month" → this is their COMPLETE plan. Do NOT include "progressionNotes" field.
@@ -1011,6 +1036,23 @@ CRITICAL FORMATTING INSTRUCTIONS:
           console.error("❌ Roadmap generation failed:", err);
         }
       })();
+    }
+
+    // Log plan generation and goal data if inside a verified gym partner context
+    if (body.gymSlug && body.memberIdentifier) {
+      try {
+        await logGymPlanGeneration(body.gymSlug, body.memberIdentifier);
+      } catch (err) {
+        console.error("❌ Failed to log gym plan usage in Redis:", err);
+      }
+      // Log goal for real analytics breakdown
+      if (formData.goal) {
+        try {
+          await logGymGoal(body.gymSlug, formData.goal);
+        } catch (err) {
+          console.error("❌ Failed to log gym goal in Redis:", err);
+        }
+      }
     }
 
     return {

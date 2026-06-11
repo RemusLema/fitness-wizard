@@ -3,26 +3,26 @@
 // Make sure your dev server is running on http://localhost:3000
 
 async function testGeneration() {
-  console.log("🚀 Initiating simulated 3-Month Plan Generation...");
+  console.log("🚀 Initiating simulated 6-Month Plan Generation...");
 
   // Simulated data that the webhook usually passes
   const payload = {
     name: "Kwame Tester",
-    email: "test@example.com", // CHANGE THIS TO YOUR EMAIL to see the PDFs!
+    email: "remislama4@gmail.com", // CHANGE THIS TO YOUR EMAIL to see the PDFs!
     age: "28",
-    gender: "male",
-    weight: "75",
+    gender: "female",
+    weight: "85",
     height: "178",
-    goal: "muscle_gain",
-    fitnessLevel: "intermediate",
+    goal: "weight-loss",
+    fitnessLevel: "beginner",
     equipment: ["dumbbells", "pullup_bar"],
-    timeline: "3_months",
-    eatingStyle: "mixed",
-    localFoods: ["ibishyimbo", "ibirayi", "dodo"],
+    timeline: "6_months",
+    eatingStyle: "local",
+    localFoods: ["ibishyimbo", "ibirayi", "dodo", "Ubugali", "Amata", "Inyama y'inka"],
     waterIntake: "2_3_liters",
     workoutLocation: "outdoor",
     intensity: "moderate",
-    tier: "transform",
+    tier: "elite",
     want: { email: true, pdf: true }
   };
 
