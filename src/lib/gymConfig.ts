@@ -30,8 +30,8 @@ export const PREDEFINED_EQUIPMENT = [
  * These are stored as hashes — the raw PINs never live in source code.
  * To override, set GYM_PIN_WAKA / GYM_PIN_CALI env vars with the SHA-256 hash.
  */
-const WAKA_PIN_HASH = process.env.GYM_PIN_WAKA || "c3a3e7f9b2e4d6a1f8c5b0e2d4a6c8f0b2e4d6a8c0f2b4e6d8a0c2f4b6e8d0a2";
-const CALI_PIN_HASH = process.env.GYM_PIN_CALI  || "d4b4f8a0c2e4d6b8f0a2c4e6d8b0f2a4c6e8d0b2f4a6c8e0d2b4f6a8c0e2d4b6";
+const WAKA_PIN_HASH = process.env.GYM_PIN_WAKA || "e1fccddd792d5b9956c29a4f6a7b91ff502a3bb3ac5f6cc89331282d5d9c1100";
+const CALI_PIN_HASH = process.env.GYM_PIN_CALI  || "bf5fba1cae166f486202d1573099cd24c9b119ca7d909c56ccd72967743e973a";
 
 export const GYM_PROFILES: Record<string, GymProfile> = {
   "waka-fitness": {
