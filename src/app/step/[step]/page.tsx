@@ -103,10 +103,10 @@ const sections: Section[] = [
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-gray-600 dark:text-gray-400">Your BMI</p>
-                <p className={`text-4xl font-bold ${bmi < 18.5 ? 'text-blue-600' : bmi < 25 ? 'text-green-600' : bmi < 30 ? 'text-yellow-600' : 'text-red-600'}`}>
+                <p className={`text-4xl font-bold ${bmi < 18.5 ? 'text-blue-600' : bmi < 25 ? 'text-green-600' : bmi < 30 ? 'text-yellow-600' : 'text-purple-600'}`}>
                   {bmi}
                 </p>
-                <p className="text-sm mt-1">{bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Healthy' : bmi < 30 ? 'Overweight' : 'Obese'}</p>
+                <p className="text-sm mt-1 font-semibold">{bmi < 18.5 ? 'Strength & Mass Build Focus' : bmi < 25 ? 'Optimal Fitness & Maintenance Focus' : bmi < 30 ? 'Body Recomposition & Tone Focus' : 'Metabolic Health & Cardio Conditioning Focus'}</p>
               </div>
               <div className="text-2xl md:text-5xl">Chart</div>
             </div>

@@ -100,15 +100,15 @@ function SamplePDF({ name, goal, week }: { name: string; goal: string; week: any
             // Watermark banner
             createElement(View, { style: sampleStyles.watermark },
                 createElement(Text, { style: sampleStyles.watermarkText },
-                    `Sample Plan for ${name} \u2014 Week 1 of Your 4-Week ${goal.replace(/_/g, " ").toUpperCase()} Plan`
+                    `Sample Plan for ${name} - Week 1 of Your 4-Week ${goal.replace(/_/g, " ").toUpperCase()} Plan`
                 ),
                 createElement(View, { style: sampleStyles.watermarkBadge },
                     createElement(Text, { style: sampleStyles.watermarkBadgeText }, "FREE SAMPLE")
                 )
             ),
             createElement(View, { style: sampleStyles.header },
-                createElement(Text, { style: sampleStyles.title }, `${name}\u2019s 4-Week Plan \u2014 Week 1 Preview`),
-                createElement(Text, { style: sampleStyles.subtitle }, `Goal: ${goal.replace(/_/g, " ")}  \u2022  This is 1 of 4 weeks in your full plan`)
+                createElement(Text, { style: sampleStyles.title }, `${name}'s 4-Week Plan - Week 1 Preview`),
+                createElement(Text, { style: sampleStyles.subtitle }, `Goal: ${goal.replace(/_/g, " ")}  |  This is 1 of 4 weeks in your full plan`)
             ),
             createElement(Text, { style: sampleStyles.weekTitle }, week?.weekTitle || "Week 1: Foundation"),
             // Day grid
@@ -130,13 +130,13 @@ function SamplePDF({ name, goal, week }: { name: string; goal: string; week: any
                         exercises.length > 0 && createElement(View, null,
                             createElement(Text, { style: sampleStyles.sectionLabel }, "WORKOUT"),
                             ...exercises.map((ex: string, j: number) =>
-                                createElement(Text, { key: j, style: sampleStyles.item }, `\u25a2 ${ex}`)
+                                createElement(Text, { key: j, style: sampleStyles.item }, `[ ] ${ex}`)
                             )
                         ),
                         mealLines.length > 0 && createElement(View, null,
                             createElement(Text, { style: sampleStyles.sectionLabel }, "NUTRITION"),
                             ...mealLines.map((ml: string, j: number) =>
-                                createElement(Text, { key: j, style: sampleStyles.item }, `\u25a2 ${ml}`)
+                                createElement(Text, { key: j, style: sampleStyles.item }, `[ ] ${ml}`)
                             )
                         ),
                         macroParts.length > 0 && createElement(View, { style: sampleStyles.macroRow },
@@ -151,13 +151,13 @@ function SamplePDF({ name, goal, week }: { name: string; goal: string; week: any
                 })
             ),
             createElement(Text, { style: sampleStyles.footer, fixed: true } as any,
-                "ramafit.xyz  |  Sample plan only \u2014 Weeks 2\u20134 available with your full plan"
+                "ramafit.xyz  |  Sample plan only | Weeks 2-4 available with your full plan"
             )
         ),
         // Upgrade page
         createElement(Page, { size: "A4", orientation: "landscape", style: sampleStyles.page } as any,
             createElement(View, { style: sampleStyles.lockedPage },
-                createElement(Text, { style: sampleStyles.lockedTitle }, "\uD83D\uDD12 Weeks 2\u20134 are waiting for you"),
+                createElement(Text, { style: sampleStyles.lockedTitle }, "[LOCKED] Weeks 2-4 are waiting for you"),
                 createElement(Text, { style: sampleStyles.lockedBody },
                     `This is Week 1 of your personalized ${goal.replace(/_/g, " ")} plan.\n\nYour full plan includes 28 days of tailored workouts, daily meal plans with macros, trainer coaching tips, and a professional PDF delivered to your inbox.\n\nUpgrade now to unlock everything.`
                 ),
